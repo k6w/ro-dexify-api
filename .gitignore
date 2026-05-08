@@ -1,96 +1,60 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Dependency directories
 node_modules/
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Parcel cache
-.cache/
-.parcel-cache/
-
-# Next.js build output
-.next/
-out/
-
-# Nuxt.js build output
-.nuxt/
-
 dist/
 build/
+coverage/
+*.lcov
+.tsbuildinfo
+*.tsbuildinfo
 
-# SvelteKit build output
-.svelte-kit/
+# Claude Code local session state
+.claude/
 
-# Gatsby files
-.cache/
-public
-
-# Vuepress build output
-.vuepress/dist
-
-# Storybook build outputs
-.out/
-storybook-static
-
-# Compiled addons
-build/Release
-
-# VS Code
-.vscode/*
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# JetBrains
-.idea/
-
-# Environment variables
-.env*
+# Environment
+.env
+.env.*
 !.env.example
 
-# SQLite databases and artifacts
+# SQLite (cache + seed output, never commit)
 *.sqlite
 *.sqlite3
 *.db
 *.db3
 *.sqlite-journal
 *.db-journal
+*.db-wal
+*.db-shm
+vocabulary.db
+vocabulary.db-wal
+vocabulary.db-shm
 
-# Coverage
-coverage/
-*.lcov
+# DEX SQL dump (GPL upstream, downloaded on demand, never committed)
+.cache/
+*.sql
+*.sql.gz
 
-# Misc
+# Live HTML snapshots from old project (replaced by tests/fixtures)
+return-*.html
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-# Project-specific ignores
-vocabulary.db
-return-*.html
+# Misc
+pids
+*.pid
+*.seed
+*.pid.lock
+.npm

@@ -1,157 +1,131 @@
-# Romanian Vocabulary API
+# ro-dexify-api
 
-Clean, structured JSON API for Romanian word lookups with SQLite caching. It fetches from:
-- DOOM (doom.lingv.ro)
-- DEXonline (dexonline.ro)
-- m.dex.ro (DEX)
+Romanian-language dictionary aggregator API. Single TypeScript service with eight providers behind a unified, typed `NormalizedEntry` schema.
 
-No raw HTML in responses. Definitions are normalized, deduplicated, and enriched with word type, gender, examples, and etymology.
+## Sources
 
-## Highlights
+| Provider | What it gives | Source |
+|----------|---------------|--------|
+| `doom` | Orthography, syllabification, inflections | https://doom.lingv.ro (DOOM 3) |
+| `dexonline` | Definitions, etymology, examples | https://dexonline.ro (live + GPL SQL dump seed) |
+| `mdex` | Definitions (mobile mirror) | https://m.dex.ro |
+| `wiktionary` | Definitions, etymology, IPA | https://ro.wiktionary.org/w/api.php |
+| `forvo` | Audio pronunciations | https://api.forvo.com (key required) |
+| `dlr` | Academic definitions | https://dlr1.solirom.ro (env-gated) |
+| `conjugare` | Verb conjugation (4-class rule engine; full-mode also seeds DEX `InflectedForm`) | local + DEX dump |
+| `pluralro` | Noun pluralization | local rules |
 
-- 🔎 Multiple sources: DOOM, DEXonline, m.dex.ro
-- 🧼 Clean JSON: no `<sup>`, `<span>` or raw markup
-- � SQLite caching (fast, offline-friendly)
-- 🧠 Smart parsing and duplicate consolidation
-- 📊 Search and stats endpoints
-- 🌐 CORS-enabled REST API
+## Setup
 
-## Quick start (Windows PowerShell)
+Cross-platform, Node-only — no MariaDB, no MySQL, no `sudo`.
 
-```powershell
-# Install dependencies
-npm install
-
-# Start the API (default: http://localhost:3000)
-npm start
-
-# Or run in dev mode with auto-restart
-npm run dev
-
-# Change port (e.g., 3001) for current shell session
-$env:PORT = 3001; npm start
+```bash
+pnpm install
+pnpm bootstrap --lite     # filtered seed via embedded frequency list (~3 MB / ~8k senses with the default list)
+pnpm bootstrap --full     # all entries from the dump (larger DB; covers the whole lexicon)
+pnpm bootstrap --no-seed  # migrations only; live scraping fills cache on demand
+pnpm dev
 ```
 
-## Endpoints
+The dump (`dex-database.sql.gz`, ~370 MB compressed) is downloaded into `.cache/`, parsed in a stream, transformed into our SQLite schema, and the dump file is removed automatically (use `--keep-dump` to keep it). The dump and the SQLite database are gitignored.
 
-### GET `/api/word/:word`
-Query the dictionaries for a word.
+**Lite vs full**:
+- Lite filters by `src/seed/frequency-list.ts` (an embedded list, easy to extend). With the default short list it produces ~537 entries / 8,351 senses in ~3 MB and skips the `InflectedForm` table (the rule engine handles conjugation locally).
+- Full imports every Entry/Definition for the allowlisted tables and seeds all inflected forms — DB grows to several hundred MB. Use this if you want offline coverage of the whole lexicon.
 
-Query params:
-- `source` (optional): `doom` | `dexonline` | `mdex` (default: all)
-- `refresh` (optional): `true` forces refetch (ignores cache)
+For words missing from the seed, the live `dexonline` provider fetches on demand (rate-limited per `robots.txt`), and the result is cached in the same SQLite tables.
 
-Examples:
-- `/api/word/casă`
-- `/api/word/casă?source=dexonline`
-- `/api/word/casă?refresh=true`
+## Endpoints (`/v1`)
 
-Response (sanitized example):
+```
+GET  /v1/word/:word                  # aggregate all enabled providers
+GET  /v1/word/:word/:source          # single provider
+GET  /v1/audio/:word                 # Forvo passthrough
+GET  /v1/conjugate/:verb             # rules + seeded forms
+GET  /v1/pluralize/:noun             # rule-based pluralization
+GET  /v1/search?q=&limit=&offset=    # FTS5 with diacritic-folding
+GET  /v1/sources                     # provider metadata + breaker state
+GET  /v1/healthz
+GET  /openapi.json   /docs
+```
+
+JSON response shape (truncated):
+
 ```json
 {
-  "word": "casă",
-  "results": [
+  "headword": "casă",
+  "entries": [
     {
-      "word": "casă",
-      "source": "dexonline",
-      "definitions": [
-        {
-          "type": "dexonline_definition",
-          "word": "casă",
-          "wordType": "substantiv",
-          "gender": "feminin",
-          "grammaticalInfo": { "plural": "case" },
-          "definitions": [
-            "Clădire care servește drept locuință."
-          ],
-          "examples": [
-            "A cumpărat o casă la țară."
-          ],
-          "etymology": "Lat. casa.",
-          "notes": [] ,
-          "source": "DEX '09 (2009)",
-          "index": 0
-        }
-      ],
-      "url": "https://dexonline.ro/definitie/casă",
-      "parsedAt": "2025-09-21T10:00:00.000Z",
-      "cached": false
+      "id": "...",
+      "headword": "casă",
+      "displayHeadword": "casă",
+      "partOfSpeech": "substantiv",
+      "gender": "feminin",
+      "inflections": [{ "form": "case", "tags": ["plural"] }],
+      "pronunciations": [{ "syllabification": "ca-să" }],
+      "senses": [],
+      "source": {
+        "providerId": "doom",
+        "providerName": "DOOM 3",
+        "license": "CC-BY-NC-SA-4.0",
+        "attribution": "...",
+        "url": "https://doom.lingv.ro/cautare/q/cas%C4%83",
+        "fetchedAt": "...",
+        "cacheHit": false
+      }
     }
   ],
-  "cached": false,
-  "timestamp": "2025-09-21T10:00:00.000Z"
+  "cache": { "hits": 0, "misses": 1 },
+  "errors": []
 }
 ```
 
-Notes:
-- No `html` fields are returned.
-- Headwords are normalized (e.g., `CASĂ1` → `casă`).
-- Definitions and examples are plain text.
+DOOM entries deliberately have empty `senses` — it's an orthography source, not semantic. Definitions come from `dexonline`, `mdex`, or `wiktionary`.
 
-### GET `/api/search/:term`
-Search cached words in SQLite.
+## Reliability
 
-Example: `/api/search/cas`
+- Per-provider circuit breaker (cockatiel: 5 consecutive failures → open 60 s).
+- Per-host token-bucket rate limit (e.g. dexonline 2 s, DOOM 1.5 s, Wiktionary 250 ms).
+- robots.txt cached 24 h; disallowed paths return `[]`.
+- `Promise.allSettled` fan-out: one slow source can't block the rest. Per-provider 8 s timeout, total budget 12 s.
+- ETag / Last-Modified replay (304 → cache touch only).
+- Output sanitised through `sanitize-html`; input validated with zod (max 64 chars, Romanian letters + `-`/`'` only).
 
-### GET `/api/stats`
-Database stats (totals, by source, recent activity).
+## Configuration (`.env.example`)
 
-### GET `/api/test/parse/:word`
-Test parsing with local HTML snapshots in the repository (`return-*.html`).
-
-### GET `/api/docs`
-Discover endpoints and usage.
-
-### GET `/health`
-Simple health check.
-
-## How it works
-
-1) First request for a word → fetch from sources → parse & clean → save to SQLite → return JSON.
-
-2) Next requests for the same word → returned from cache instantly (unless `refresh=true`).
-
-3) Normalized definition objects include:
-- `word`, `wordType`, `gender`, `grammaticalInfo`
-- `definitions[]`, `examples[]`, `etymology`, `notes[]`
-- `source`, `index` (position within the page)
-
-## Project structure
-
-- `server.js` – Express server and endpoints
-- `database.js` – SQLite helper and schema
-- `parser.js` – Parsers for DOOM, DEXonline, m.dex.ro
-- `return-*.html` – Local snapshots for parser testing
-- `vocabulary.db` – Generated SQLite cache (gitignored)
-
-## Development
-
-```powershell
-# Run tests (lightweight harness)
-npm test
-
-# Dev mode with hot reload
-npm run dev
+```
+PORT=3000
+DB_PATH=./vocabulary.db
+USER_AGENT="ro-dexify-api/2.0 (+https://github.com/k6w/ro-dexify-api; non-commercial)"
+REQUEST_TIMEOUT_MS=8000
+TOTAL_BUDGET_MS=12000
+RATE_LIMIT_PER_MIN=60
+ENABLE_DLR=false
+FORVO_API_KEY=
+FORVO_DAILY_QUOTA=500
+DEX_DUMP_URL=https://dexonline.ro/static/download/dex-database.sql.gz
 ```
 
-## Database & persistence
+## Scripts
 
-- SQLite file: `vocabulary.db` (created at project root)
-- This file is not committed to git (see `.gitignore`).
+```
+pnpm dev                run with hot reload (tsx watch)
+pnpm build              compile to dist/
+pnpm start              run compiled build
+pnpm bootstrap [...]    cross-platform installer + seeder (avoids reserved `pnpm setup`)
+pnpm seed               re-run bootstrap without `pnpm install`
+pnpm fixtures:refresh   re-fetch test fixtures from live sources
+pnpm test               vitest
+pnpm typecheck          tsc --noEmit
+pnpm lint               biome check
+```
 
-## Contributing
+## Licensing & attribution
 
-Issues and PRs are welcome. If you add a source or tweak parsing, please:
-- Keep responses HTML-free and normalized.
-- Add a brief note in the README (sources/features).
-- Avoid committing local DB files or secrets.
+- DOOM 3: CC-BY-NC-SA 4.0. Non-commercial only. Attribution: Institutul de Lingvistică „Iorgu Iordan – Al. Rosetti".
+- DEXonline: GPL data. Seed dump downloaded at setup; never committed.
+- Wiktionary RO: CC-BY-SA 4.0.
+- Forvo: proprietary; per-clip credit to user.
+- DLR: academic source; cite Academia Română.
 
-## License
-
-MIT (see `LICENSE`).
-
-## Acknowledgements
-
-- DOOM (doom.lingv.ro)
-- DEXonline (dexonline.ro)
-- m.dex.ro
+This project is non-commercial and open source (MIT). Per-provider attribution travels in every response in `entry.source.attribution`.
