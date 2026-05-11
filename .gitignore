@@ -27,10 +27,14 @@ vocabulary.db
 vocabulary.db-wal
 vocabulary.db-shm
 
-# DEX SQL dump (GPL upstream, downloaded on demand, never committed)
+# DEX SQL dump (GPL upstream, downloaded on demand, never committed).
+# Scoped to the dump itself -- a blanket *.sql also swallowed
+# src/cache/migrations/*.sql, which is why the schema was never committed and
+# every openDatabase() died on ENOENT.
 .cache/
-*.sql
 *.sql.gz
+dex-database*.sql
+!src/cache/migrations/*.sql
 
 # Live HTML snapshots from old project (replaced by tests/fixtures)
 return-*.html
