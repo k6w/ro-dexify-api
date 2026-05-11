@@ -1,3 +1,8 @@
+allowBuilds:
+  '@biomejs/biome': true
+  better-sqlite3: true
+  esbuild: true
+  wtf_wikipedia: true
 onlyBuiltDependencies:
   - "@biomejs/biome"
   - better-sqlite3
