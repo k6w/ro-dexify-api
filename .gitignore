@@ -3,6 +3,7 @@ dist/
 build/
 coverage/
 *.lcov
+.vitest-report.json
 .tsbuildinfo
 *.tsbuildinfo
 
