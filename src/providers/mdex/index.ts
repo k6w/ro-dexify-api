@@ -1,8 +1,8 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
-import { buildMdexUrl } from './url.js';
 import { parseMdex } from './parse.js';
+import { buildMdexUrl } from './url.js';
 
 export class MdexProvider extends BaseProvider {
   readonly meta: ProviderMeta = {

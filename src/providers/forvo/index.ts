@@ -1,12 +1,12 @@
-import { loadConfig } from '../../config.js';
-import { TTL_SECONDS } from '../../cache/ttl.js';
 import { getDb } from '../../cache/sqlite.js';
+import { TTL_SECONDS } from '../../cache/ttl.js';
+import { loadConfig } from '../../config.js';
+import type { NormalizedEntry } from '../../schema/entry.js';
 import { ApiException } from '../../schema/errors.js';
 import { BaseProvider } from '../base.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
-import type { NormalizedEntry } from '../../schema/entry.js';
-import { buildForvoUrl } from './url.js';
 import { parseForvo } from './parse.js';
+import { buildForvoUrl } from './url.js';
 
 export class ForvoProvider extends BaseProvider {
   readonly meta: ProviderMeta = {

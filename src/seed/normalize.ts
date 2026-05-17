@@ -1,6 +1,6 @@
-import { deterministicId } from '../lib/id.js';
-import { normalizeHeadword } from '../lib/headword.js';
 import { htmlToPlainText } from '../http/sanitize.js';
+import { normalizeHeadword } from '../lib/headword.js';
+import { deterministicId } from '../lib/id.js';
 import type { NormalizedEntry } from '../schema/entry.js';
 
 export function dexInternalRepToText(rep: string): string {

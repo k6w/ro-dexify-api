@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import '../context.js';
-import { ApiException } from '../../schema/errors.js';
 import { HeadwordParam } from '../../schema/api.js';
+import { ApiException } from '../../schema/errors.js';
 import { aggregateOne } from '../aggregator.js';
 
 export const conjugateRoutes = new Hono();

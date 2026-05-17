@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { type Dispatcher, MockAgent, getGlobalDispatcher, setGlobalDispatcher } from 'undici';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MockAgent, setGlobalDispatcher, getGlobalDispatcher, type Dispatcher } from 'undici';
 import { buildApp } from '../../src/app.js';
-import { getLogger } from '../../src/lib/logger.js';
-import { clearRobotsCacheForTests } from '../../src/http/robots.js';
 import { clearMem } from '../../src/cache/memory.js';
+import { clearRobotsCacheForTests } from '../../src/http/robots.js';
+import { getLogger } from '../../src/lib/logger.js';
 
 let mock: MockAgent;
 let original: Dispatcher;

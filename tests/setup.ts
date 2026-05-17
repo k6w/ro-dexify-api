@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, afterEach, beforeAll } from 'vitest';
-import { closeDatabase, openDatabase } from '../src/cache/sqlite.js';
 import { clearMem } from '../src/cache/memory.js';
+import { closeDatabase, openDatabase } from '../src/cache/sqlite.js';
 import { resetConfigForTests } from '../src/config.js';
 import { clearRobotsCacheForTests } from '../src/http/robots.js';
 

@@ -1,7 +1,7 @@
-import type { Logger } from '../../lib/logger.js';
 import { TTL_SECONDS } from '../../cache/ttl.js';
-import { deterministicId } from '../../lib/id.js';
 import { normalizeHeadword } from '../../lib/headword.js';
+import { deterministicId } from '../../lib/id.js';
+import type { Logger } from '../../lib/logger.js';
 import type { Inflection, NormalizedEntry } from '../../schema/entry.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
 

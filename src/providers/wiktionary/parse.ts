@@ -1,6 +1,12 @@
 import wtf from 'wtf_wikipedia';
-import type { Etymology, NormalizedEntry, PartOfSpeech, Pronunciation, Sense } from '../../schema/entry.js';
 import { deterministicId } from '../../lib/id.js';
+import type {
+  Etymology,
+  NormalizedEntry,
+  PartOfSpeech,
+  Pronunciation,
+  Sense,
+} from '../../schema/entry.js';
 
 const POS_FROM_TEMPLATE: Record<string, PartOfSpeech> = {
   'ro-substantiv': 'substantiv',

@@ -1,6 +1,6 @@
 import robotsParser from 'robots-parser';
-import { fetchText } from './client.js';
 import type { Logger } from '../lib/logger.js';
+import { fetchText } from './client.js';
 
 interface CacheEntry {
   parser: ReturnType<typeof robotsParser>;
@@ -10,11 +10,7 @@ interface CacheEntry {
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const cache = new Map<string, CacheEntry>();
 
-export async function isAllowed(
-  url: string,
-  userAgent: string,
-  logger?: Logger,
-): Promise<boolean> {
+export async function isAllowed(url: string, userAgent: string, logger?: Logger): Promise<boolean> {
   const u = new URL(url);
   const origin = u.origin;
   const cached = cache.get(origin);

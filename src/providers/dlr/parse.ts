@@ -1,7 +1,7 @@
 import { parseHTML } from 'linkedom';
-import type { NormalizedEntry, Sense } from '../../schema/entry.js';
-import { deterministicId } from '../../lib/id.js';
 import { htmlToPlainText } from '../../http/sanitize.js';
+import { deterministicId } from '../../lib/id.js';
+import type { NormalizedEntry, Sense } from '../../schema/entry.js';
 
 export function parseDlr(body: string, word: string): NormalizedEntry[] {
   if (!body) return [];

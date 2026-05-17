@@ -1,10 +1,10 @@
+import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { execSync } from 'node:child_process';
+import { closeDatabase, openDatabase } from '../src/cache/sqlite.js';
 import { loadConfig } from '../src/config.js';
 import { getLogger } from '../src/lib/logger.js';
-import { openDatabase, closeDatabase } from '../src/cache/sqlite.js';
 import { downloadDump } from '../src/seed/download.js';
 import { importDexDump } from '../src/seed/import.js';
 
@@ -76,7 +76,12 @@ async function main(): Promise<void> {
   const needsDownload = flags.refresh || !existsSync(dumpPath);
   if (needsDownload) {
     logger.info({ url: cfg.DEX_DUMP_URL, dumpPath }, 'downloading_dump');
-    await downloadDump({ url: cfg.DEX_DUMP_URL, destination: dumpPath, resume: !flags.refresh, logger });
+    await downloadDump({
+      url: cfg.DEX_DUMP_URL,
+      destination: dumpPath,
+      resume: !flags.refresh,
+      logger,
+    });
   } else {
     logger.info({ dumpPath }, 'using_cached_dump');
   }

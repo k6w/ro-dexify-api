@@ -1,12 +1,12 @@
+import type { Readable } from 'node:stream';
 import type Database from 'better-sqlite3';
 import { ulid } from 'ulid';
-import { Readable } from 'node:stream';
-import type { Logger } from '../lib/logger.js';
 import { normalizeHeadword } from '../lib/headword.js';
-import { dexInternalRepToText } from './normalize.js';
-import { MysqlInsertStream, readGzippedSqlDump } from './mysql-stream.js';
-import { TABLE_COLUMNS } from './schema-map.js';
+import type { Logger } from '../lib/logger.js';
 import { TOP_RO_WORDS } from './frequency-list.js';
+import { MysqlInsertStream, readGzippedSqlDump } from './mysql-stream.js';
+import { dexInternalRepToText } from './normalize.js';
+import { TABLE_COLUMNS } from './schema-map.js';
 
 export interface ImportOptions {
   dumpPath: string;

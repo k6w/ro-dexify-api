@@ -1,4 +1,4 @@
-import { circuitBreaker, ConsecutiveBreaker, handleAll } from 'cockatiel';
+import { ConsecutiveBreaker, circuitBreaker, handleAll } from 'cockatiel';
 import type { ProviderId } from '../schema/entry.js';
 
 export type BreakerState = 'closed' | 'half-open' | 'open';

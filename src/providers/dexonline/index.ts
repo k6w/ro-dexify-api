@@ -1,8 +1,8 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
-import { buildDexonlineUrl } from './url.js';
 import { parseDexonline } from './parse.js';
+import { buildDexonlineUrl } from './url.js';
 
 export class DexonlineProvider extends BaseProvider {
   readonly meta: ProviderMeta = {

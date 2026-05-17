@@ -1,5 +1,5 @@
-import type { NormalizedEntry, Pronunciation } from '../../schema/entry.js';
 import { deterministicId } from '../../lib/id.js';
+import type { NormalizedEntry, Pronunciation } from '../../schema/entry.js';
 
 interface ForvoItem {
   id: number;

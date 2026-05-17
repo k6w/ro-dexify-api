@@ -3,8 +3,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import type { Database as DatabaseType } from 'better-sqlite3';
-import type { NormalizedEntry } from '../schema/entry.js';
 import { newUlid } from '../lib/id.js';
+import type { NormalizedEntry } from '../schema/entry.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = resolve(here, 'migrations');

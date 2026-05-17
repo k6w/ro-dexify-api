@@ -1,23 +1,23 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { secureHeaders } from 'hono/secure-headers';
 import { etag } from 'hono/etag';
+import { secureHeaders } from 'hono/secure-headers';
 import { ZodError } from 'zod';
 import './server/context.js';
-import { ApiException } from './schema/errors.js';
+import { loadConfig } from './config.js';
 import type { Logger } from './lib/logger.js';
+import { ApiException } from './schema/errors.js';
 import { errorMiddleware } from './server/middleware/error.js';
 import { requestLogger } from './server/middleware/logger.js';
 import { rateLimitMiddleware } from './server/middleware/ratelimit.js';
-import { wordRoutes } from './server/routes/word.js';
-import { searchRoutes } from './server/routes/search.js';
 import { audioRoutes } from './server/routes/audio.js';
 import { conjugateRoutes } from './server/routes/conjugate.js';
-import { pluralizeRoutes } from './server/routes/pluralize.js';
-import { sourcesRoutes } from './server/routes/sources.js';
 import { healthRoutes } from './server/routes/health.js';
 import { openapiRoutes } from './server/routes/openapi.js';
-import { loadConfig } from './config.js';
+import { pluralizeRoutes } from './server/routes/pluralize.js';
+import { searchRoutes } from './server/routes/search.js';
+import { sourcesRoutes } from './server/routes/sources.js';
+import { wordRoutes } from './server/routes/word.js';
 
 export interface AppOptions {
   logger: Logger;

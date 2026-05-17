@@ -1,8 +1,8 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
-import { buildWiktionaryUrl } from './url.js';
 import { parseWiktionary } from './parse.js';
+import { buildWiktionaryUrl } from './url.js';
 
 export class WiktionaryProvider extends BaseProvider {
   readonly meta: ProviderMeta = {

@@ -8,5 +8,3 @@ export type AppVariables = {
 declare module 'hono' {
   interface ContextVariableMap extends AppVariables {}
 }
-
-export {};

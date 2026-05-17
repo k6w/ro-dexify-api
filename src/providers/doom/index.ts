@@ -1,8 +1,8 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
-import { buildDoomUrl } from './url.js';
 import { parseDoom } from './parse.js';
+import { buildDoomUrl } from './url.js';
 
 export class DoomProvider extends BaseProvider {
   readonly meta: ProviderMeta = {

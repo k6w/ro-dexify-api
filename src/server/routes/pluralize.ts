@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
-import { ApiException } from '../../schema/errors.js';
-import { HeadwordParam } from '../../schema/api.js';
 import { pluralize } from '../../providers/pluralro/index.js';
+import { HeadwordParam } from '../../schema/api.js';
+import { ApiException } from '../../schema/errors.js';
 
 export const pluralizeRoutes = new Hono();
 

@@ -13,7 +13,7 @@ describe('MysqlInsertStream', () => {
     `;
     const out: { table: string; values: (string | number | null)[] }[] = [];
     const stream = Readable.from([sql]).pipe(new MysqlInsertStream());
-    for await (const obj of stream) out.push(obj as typeof out[number]);
+    for await (const obj of stream) out.push(obj as (typeof out)[number]);
     expect(out.find((r) => r.table === 'Lexem' && r.values[1] === 'casă')).toBeTruthy();
     expect(out.find((r) => r.table === 'Lexem' && r.values[1] === 'merge')).toBeTruthy();
     expect(out.find((r) => r.table === 'Junk')).toBeUndefined();
@@ -24,7 +24,7 @@ describe('MysqlInsertStream', () => {
     const sql = `INSERT INTO \`Lexem\` VALUES (1, 'O\\'Brien', NULL);`;
     const stream = Readable.from([sql]).pipe(new MysqlInsertStream());
     const rows: { table: string; values: (string | number | null)[] }[] = [];
-    for await (const obj of stream) rows.push(obj as typeof rows[number]);
+    for await (const obj of stream) rows.push(obj as (typeof rows)[number]);
     expect(rows[0]?.values[1]).toBe("O'Brien");
     expect(rows[0]?.values[2]).toBeNull();
   });

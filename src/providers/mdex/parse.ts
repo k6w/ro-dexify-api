@@ -1,7 +1,7 @@
 import { parseHTML } from 'linkedom';
-import type { Example, NormalizedEntry, PartOfSpeech, Sense } from '../../schema/entry.js';
-import { deterministicId } from '../../lib/id.js';
 import { htmlToPlainText } from '../../http/sanitize.js';
+import { deterministicId } from '../../lib/id.js';
+import type { Example, NormalizedEntry, PartOfSpeech, Sense } from '../../schema/entry.js';
 
 const POS_HINTS: Array<[RegExp, PartOfSpeech]> = [
   [/\bs\.\s*[fmn]\.|\bsubstantiv\b/i, 'substantiv'],
@@ -99,9 +99,19 @@ function splitNumberedSenses(text: string): Sense[] {
     const cur = marks[i];
     const nxt = marks[i + 1];
     if (!cur) continue;
-    const slice = text.slice(cur.start, nxt?.start ?? text.length).replace(/^\s*\d+\.\s*/, '').trim();
+    const slice = text
+      .slice(cur.start, nxt?.start ?? text.length)
+      .replace(/^\s*\d+\.\s*/, '')
+      .trim();
     if (slice) {
-      out.push({ number: cur.n, text: slice, register: [], examples: [], synonyms: [], antonyms: [] });
+      out.push({
+        number: cur.n,
+        text: slice,
+        register: [],
+        examples: [],
+        synonyms: [],
+        antonyms: [],
+      });
     }
   }
   return out;

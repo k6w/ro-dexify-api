@@ -110,8 +110,7 @@ export function iterateValuesTuples(stmt: string): Iterable<(string | number | n
       while (i < stmt.length && stmt[i] === ' ') i++;
       return {
         next(): IteratorResult<(string | number | null)[]> {
-          while (i < stmt.length && (stmt[i] === ',' || stmt[i] === ' ' || stmt[i] === '\n'))
-            i++;
+          while (i < stmt.length && (stmt[i] === ',' || stmt[i] === ' ' || stmt[i] === '\n')) i++;
           if (i >= stmt.length || stmt[i] !== '(') return { done: true, value: undefined as never };
           const tuple = parseTuple(stmt, i);
           i = tuple.endIdx + 1;
@@ -136,10 +135,7 @@ function parseTuple(
       const out = readQuoted(stmt, i);
       values.push(out.value);
       i = out.endIdx + 1;
-    } else if (
-      stmt.slice(i, i + 4).toUpperCase() === 'NULL' &&
-      !isIdentifierChar(stmt[i + 4])
-    ) {
+    } else if (stmt.slice(i, i + 4).toUpperCase() === 'NULL' && !isIdentifierChar(stmt[i + 4])) {
       values.push(null);
       i += 4;
     } else {

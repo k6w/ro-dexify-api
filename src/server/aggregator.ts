@@ -1,9 +1,9 @@
-import type { Logger } from '../lib/logger.js';
 import { loadConfig } from '../config.js';
+import type { Logger } from '../lib/logger.js';
+import { getProvider, listProviders } from '../providers/registry.js';
+import type { Provider } from '../providers/types.js';
 import type { Capability, NormalizedEntry, ProviderId } from '../schema/entry.js';
 import { ApiException, type ErrorCode, type ProviderError } from '../schema/errors.js';
-import { listProviders, getProvider } from '../providers/registry.js';
-import type { Provider } from '../providers/types.js';
 
 export interface AggregateOpts {
   word: string;

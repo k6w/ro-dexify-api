@@ -1,7 +1,7 @@
-import { TTL_SECONDS } from '../../cache/ttl.js';
 import { getDb } from '../../cache/sqlite.js';
-import { deterministicId } from '../../lib/id.js';
+import { TTL_SECONDS } from '../../cache/ttl.js';
 import { normalizeHeadword } from '../../lib/headword.js';
+import { deterministicId } from '../../lib/id.js';
 import type { NormalizedEntry } from '../../schema/entry.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
 import { conjugateRomanianVerb } from './rules.js';

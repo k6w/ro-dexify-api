@@ -1,33 +1,39 @@
 import { parseHTML } from 'linkedom';
-import type { Etymology, Example, NormalizedEntry, PartOfSpeech, Sense } from '../../schema/entry.js';
-import { deterministicId } from '../../lib/id.js';
 import { htmlToPlainText } from '../../http/sanitize.js';
+import { deterministicId } from '../../lib/id.js';
+import type {
+  Etymology,
+  Example,
+  NormalizedEntry,
+  PartOfSpeech,
+  Sense,
+} from '../../schema/entry.js';
 
 const POS_TOKEN: Record<string, PartOfSpeech> = {
-  'substantiv': 'substantiv',
+  substantiv: 'substantiv',
   'subst.': 'substantiv',
   's.f.': 'substantiv',
   's.m.': 'substantiv',
   's.n.': 'substantiv',
-  'verb': 'verb',
+  verb: 'verb',
   'vb.': 'verb',
-  'adjectiv': 'adjectiv',
+  adjectiv: 'adjectiv',
   'adj.': 'adjectiv',
-  'adverb': 'adverb',
+  adverb: 'adverb',
   'adv.': 'adverb',
-  'pronume': 'pronume',
+  pronume: 'pronume',
   'pron.': 'pronume',
-  'numeral': 'numeral',
+  numeral: 'numeral',
   'num.': 'numeral',
-  'prepoziție': 'prepoziție',
+  prepoziție: 'prepoziție',
   'prep.': 'prepoziție',
-  'conjuncție': 'conjuncție',
+  conjuncție: 'conjuncție',
   'conj.': 'conjuncție',
-  'interjecție': 'interjecție',
+  interjecție: 'interjecție',
   'interj.': 'interjecție',
-  'articol': 'articol',
+  articol: 'articol',
   'art.': 'articol',
-  'locuțiune': 'locuțiune',
+  locuțiune: 'locuțiune',
   'loc.': 'locuțiune',
 };
 

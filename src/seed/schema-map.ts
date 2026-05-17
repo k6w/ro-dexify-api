@@ -54,22 +54,8 @@ export interface DexSourceRow {
 
 export const TABLE_COLUMNS: Record<string, string[]> = {
   Entry: ['id', 'description', 'partOfSpeech', 'number'],
-  Lexem: [
-    'id',
-    'formNoAccent',
-    'formUtf8General',
-    'description',
-    'modelType',
-    'modelNumber',
-  ],
-  Lexeme: [
-    'id',
-    'formNoAccent',
-    'formUtf8General',
-    'description',
-    'modelType',
-    'modelNumber',
-  ],
+  Lexem: ['id', 'formNoAccent', 'formUtf8General', 'description', 'modelType', 'modelNumber'],
+  Lexeme: ['id', 'formNoAccent', 'formUtf8General', 'description', 'modelType', 'modelNumber'],
   Definition: ['id', 'sourceId', 'internalRep', 'htmlRep', 'status', 'lexicon'],
   Meaning: ['id', 'parentId', 'displayOrder', 'breadcrumb', 'internalRep'],
   InflectedForm: ['id', 'lexemeId', 'inflectionId', 'form', 'formNoAccent'],

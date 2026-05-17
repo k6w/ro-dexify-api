@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { listProviders } from '../../providers/registry.js';
 import { getBreakerState } from '../../http/breaker.js';
+import { listProviders } from '../../providers/registry.js';
 import type { ProviderId } from '../../schema/entry.js';
 
 export const sourcesRoutes = new Hono();

@@ -1,11 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fetchText } from '../src/http/client.js';
-import { buildDoomUrl } from '../src/providers/doom/url.js';
+import { getLogger } from '../src/lib/logger.js';
 import { buildDexonlineUrl } from '../src/providers/dexonline/url.js';
+import { buildDoomUrl } from '../src/providers/doom/url.js';
 import { buildMdexUrl } from '../src/providers/mdex/url.js';
 import { buildWiktionaryUrl } from '../src/providers/wiktionary/url.js';
-import { getLogger } from '../src/lib/logger.js';
 
 const FIXTURE_WORDS = ['casa', 'merge'];
 const FIXTURE_DIR = resolve('tests/fixtures');

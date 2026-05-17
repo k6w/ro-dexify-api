@@ -1,6 +1,6 @@
 import type { Context, MiddlewareHandler } from 'hono';
-import { ApiException, httpStatusForCode } from '../../schema/errors.js';
 import type { Logger } from '../../lib/logger.js';
+import { ApiException, httpStatusForCode } from '../../schema/errors.js';
 
 export const errorMiddleware = (logger: Logger): MiddlewareHandler => {
   return async (c, next) => {

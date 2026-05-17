@@ -1,7 +1,7 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { Inflection, NormalizedEntry, PartOfSpeech } from '../../schema/entry.js';
-import { deterministicId } from '../../lib/id.js';
 import { htmlToPlainText } from '../../http/sanitize.js';
+import { deterministicId } from '../../lib/id.js';
+import type { Inflection, NormalizedEntry, PartOfSpeech } from '../../schema/entry.js';
 
 const POS_MAP: Record<string, PartOfSpeech> = {
   's.f.': 'substantiv',
@@ -144,9 +144,15 @@ function buildEntry(entryText: string, word: string, idx: number): NormalizedEnt
     }
   }
 
-  const clauses = cleaned.split(';').map((c) => c.trim()).filter(Boolean);
+  const clauses = cleaned
+    .split(';')
+    .map((c) => c.trim())
+    .filter(Boolean);
   for (const clause of clauses) {
-    const tokens = clause.split(',').map((t) => t.trim()).filter(Boolean);
+    const tokens = clause
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
     for (const token of tokens) {
       const trimmedToken = token.replace(/\s+/g, ' ');
       const plMatch = trimmedToken.match(/^pl\.?\s+(.+)/i);
@@ -158,7 +164,10 @@ function buildEntry(entryText: string, word: string, idx: number): NormalizedEnt
       }
       const gdMatch = trimmedToken.match(/^g\.-?d\.?\s+(.+)/i);
       if (gdMatch?.[1]) {
-        const form = gdMatch[1].replace(/^art\.?\s+/i, '').replace(/[(),;]/g, '').trim();
+        const form = gdMatch[1]
+          .replace(/^art\.?\s+/i, '')
+          .replace(/[(),;]/g, '')
+          .trim();
         if (form) inflections.push({ form, tags: ['genitive', 'dative'] });
       }
       const artMatch = trimmedToken.match(/^art\.?\s+(.+)/i);

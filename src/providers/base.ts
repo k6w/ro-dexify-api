@@ -1,14 +1,14 @@
 import { createHash } from 'node:crypto';
-import { loadConfig } from '../config.js';
-import { getCachedLookup, getDb, loadEntries, persistEntries } from '../cache/sqlite.js';
 import { getMem, setMem } from '../cache/memory.js';
-import { expiresAtIso, TTL_SECONDS } from '../cache/ttl.js';
-import { fetchText } from '../http/client.js';
-import { isAllowed } from '../http/robots.js';
-import { runOnHost } from '../http/ratelimit.js';
+import { getCachedLookup, getDb, loadEntries, persistEntries } from '../cache/sqlite.js';
+import { TTL_SECONDS, expiresAtIso } from '../cache/ttl.js';
+import { loadConfig } from '../config.js';
 import { getBreaker } from '../http/breaker.js';
-import { ApiException } from '../schema/errors.js';
+import { fetchText } from '../http/client.js';
+import { runOnHost } from '../http/ratelimit.js';
+import { isAllowed } from '../http/robots.js';
 import type { NormalizedEntry } from '../schema/entry.js';
+import { ApiException } from '../schema/errors.js';
 import type { LookupOpts, Provider, ProviderMeta } from './types.js';
 
 export abstract class BaseProvider implements Provider {
@@ -76,8 +76,9 @@ export abstract class BaseProvider implements Provider {
 
     if (fetched.status === 304 && cached) {
       const ttl = expiresAtIso(meta.ttlSeconds, now);
-      db.prepare('UPDATE lookups SET fetched_at = ?, expires_at = ? WHERE provider_id = ? AND headword = ?')
-        .run(now.toISOString(), ttl, meta.id, headword);
+      db.prepare(
+        'UPDATE lookups SET fetched_at = ?, expires_at = ? WHERE provider_id = ? AND headword = ?',
+      ).run(now.toISOString(), ttl, meta.id, headword);
       const entries = loadEntries(db, meta.id, headword).map((e) =>
         attachMetaToCachedEntry(e, meta),
       );
@@ -86,9 +87,13 @@ export abstract class BaseProvider implements Provider {
     }
 
     if (fetched.status >= 400) {
-      throw new ApiException('PROVIDER_UPSTREAM_ERROR', `${meta.id} returned HTTP ${fetched.status}`, {
-        status: fetched.status,
-      });
+      throw new ApiException(
+        'PROVIDER_UPSTREAM_ERROR',
+        `${meta.id} returned HTTP ${fetched.status}`,
+        {
+          status: fetched.status,
+        },
+      );
     }
 
     const parsed = this.parse(fetched.body, headword);

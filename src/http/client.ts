@@ -1,4 +1,4 @@
-import { Agent, getGlobalDispatcher, request, type Dispatcher } from 'undici';
+import { Agent, type Dispatcher, getGlobalDispatcher, request } from 'undici';
 import type { Logger } from '../lib/logger.js';
 
 const defaultAgent = new Agent({

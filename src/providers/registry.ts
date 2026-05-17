@@ -1,13 +1,13 @@
 import type { ProviderId } from '../schema/entry.js';
-import type { Provider } from './types.js';
-import { DoomProvider } from './doom/index.js';
-import { DexonlineProvider } from './dexonline/index.js';
-import { MdexProvider } from './mdex/index.js';
-import { WiktionaryProvider } from './wiktionary/index.js';
-import { ForvoProvider } from './forvo/index.js';
-import { DlrProvider } from './dlr/index.js';
 import { ConjugareProvider } from './conjugare/index.js';
+import { DexonlineProvider } from './dexonline/index.js';
+import { DlrProvider } from './dlr/index.js';
+import { DoomProvider } from './doom/index.js';
+import { ForvoProvider } from './forvo/index.js';
+import { MdexProvider } from './mdex/index.js';
 import { PluralRoProvider } from './pluralro/index.js';
+import type { Provider } from './types.js';
+import { WiktionaryProvider } from './wiktionary/index.js';
 
 let registry: Map<ProviderId, Provider> | undefined;
 

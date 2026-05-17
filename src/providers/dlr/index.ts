@@ -1,9 +1,9 @@
-import { loadConfig } from '../../config.js';
 import { TTL_SECONDS } from '../../cache/ttl.js';
+import { loadConfig } from '../../config.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
-import { buildDlrUrl } from './url.js';
 import { parseDlr } from './parse.js';
+import { buildDlrUrl } from './url.js';
 
 export class DlrProvider extends BaseProvider {
   readonly meta: ProviderMeta = {
