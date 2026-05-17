@@ -202,7 +202,3 @@ function buildEntry(entryText: string, word: string, idx: number): NormalizedEnt
   if (gender) entry.gender = gender;
   return entry;
 }
-
-function ensureTrailingDot(s: string): string {
-  return s.endsWith('.') ? s : `${s}.`;
-}
