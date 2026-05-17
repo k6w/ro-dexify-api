@@ -30,7 +30,8 @@
         "useNodejsImportProtocol": "error",
         "noNonNullAssertion": "error",
         "useConst": "error",
-        "useTemplate": "warn"
+        "useTemplate": "warn",
+        "noUnusedTemplateLiteral": "off"
       },
       "suspicious": {
         "noExplicitAny": "error"
