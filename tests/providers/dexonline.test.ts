@@ -3,13 +3,14 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseDexonline } from '../../src/providers/dexonline/parse.js';
 import { NormalizedEntry } from '../../src/schema/entry.js';
+import { firstOrThrow } from '../helpers.js';
 
 describe('DexonlineParser', () => {
   it('extracts senses, etymology, and gender', () => {
     const html = readFileSync(resolve('tests/fixtures/dexonline/casa.html'), 'utf8');
     const entries = parseDexonline(html, 'casă');
     expect(entries.length).toBeGreaterThan(0);
-    const e = entries[0]!;
+    const e = firstOrThrow(entries, 'entry');
     expect(e.partOfSpeech).toBe('substantiv');
     expect(e.gender).toBe('feminin');
     expect(e.senses.length).toBeGreaterThanOrEqual(2);

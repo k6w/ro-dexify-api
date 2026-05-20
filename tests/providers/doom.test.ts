@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseDoom } from '../../src/providers/doom/parse.js';
 import { NormalizedEntry } from '../../src/schema/entry.js';
+import { firstOrThrow } from '../helpers.js';
 
 function fixture(file: string): string {
   return readFileSync(resolve('tests/fixtures/doom', file), 'utf8');
@@ -12,7 +13,7 @@ describe('DoomParser', () => {
   it('parses noun entries with inflections and syllabification', () => {
     const entries = parseDoom(fixture('casa.html'), 'casă');
     expect(entries.length).toBeGreaterThan(0);
-    const e = entries[0]!;
+    const e = firstOrThrow(entries, 'entry');
     expect(e.partOfSpeech).toBe('substantiv');
     expect(e.gender).toBe('feminin');
     expect(e.pronunciations[0]?.syllabification).toBe('ca-să');
@@ -24,7 +25,7 @@ describe('DoomParser', () => {
   it('parses verb without fabricating senses', () => {
     const entries = parseDoom(fixture('merge.html'), 'merge');
     expect(entries.length).toBeGreaterThan(0);
-    const e = entries[0]!;
+    const e = firstOrThrow(entries, 'entry');
     expect(e.partOfSpeech).toBe('verb');
     expect(e.senses).toEqual([]);
     expect(e.pronunciations[0]?.syllabification).toBe('mer-ge');

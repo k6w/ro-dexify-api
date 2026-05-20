@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseForvo } from '../../src/providers/forvo/parse.js';
 import { NormalizedEntry } from '../../src/schema/entry.js';
+import { firstOrThrow } from '../helpers.js';
 
 describe('ForvoParser', () => {
   it('maps audio URLs to pronunciations', () => {
@@ -12,7 +13,7 @@ describe('ForvoParser', () => {
     });
     const entries = parseForvo(body, 'casă');
     expect(entries.length).toBe(1);
-    const e = entries[0]!;
+    const e = firstOrThrow(entries, 'entry');
     expect(e.pronunciations.length).toBe(2);
     expect(e.pronunciations[0]?.audioUrl).toBe('https://forvo.cdn.example/casa.mp3');
     expect(e.senses).toEqual([]);
