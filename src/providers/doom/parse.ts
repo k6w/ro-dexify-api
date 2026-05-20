@@ -100,8 +100,7 @@ function nodeText(v: unknown): string {
 
 function extractEntriesFallback(text: string, out: string[]): void {
   const re = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
+  for (const m of text.matchAll(re)) {
     if (m[1]) out.push(htmlToPlainText(m[1]));
   }
 }
@@ -128,7 +127,7 @@ function buildEntry(entryText: string, word: string, idx: number): NormalizedEnt
   const sylMatch = cleaned.match(/desp\.?\s*([^)]*)/i);
   if (sylMatch?.[1]) {
     const cand = sylMatch[1].trim().split(/[,;]/)[0]?.trim();
-    if (cand && cand.includes('-')) syllabification = cand;
+    if (cand?.includes('-')) syllabification = cand;
   }
 
   const sff = cleaned.match(/(^|[\s(])s\.\s*([fmn])\./i);

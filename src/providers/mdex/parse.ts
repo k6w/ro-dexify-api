@@ -90,8 +90,7 @@ function splitNumberedSenses(text: string): Sense[] {
   const out: Sense[] = [];
   const re = /(?:^|\s)(\d+)\.\s+/g;
   const marks: { n: number; start: number }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
+  for (const m of text.matchAll(re)) {
     marks.push({ n: Number(m[1]), start: m.index + (m[0].startsWith(' ') ? 1 : 0) });
   }
   if (marks.length < 2) return out;

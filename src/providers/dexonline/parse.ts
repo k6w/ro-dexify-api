@@ -214,8 +214,7 @@ function splitNumberedFallback(text: string): Sense[] {
   const out: Sense[] = [];
   const re = /(?:^|[\s.])(\d+)\.\s+/g;
   const parts: { num: number; start: number }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
+  for (const m of text.matchAll(re)) {
     parts.push({ num: Number(m[1]), start: m.index + (m[0].startsWith(' ') ? 1 : 0) });
   }
   if (parts.length === 0) return out;

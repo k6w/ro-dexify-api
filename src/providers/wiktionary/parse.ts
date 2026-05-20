@@ -129,8 +129,7 @@ function extractEtymology(plainText: string): Etymology | undefined {
 function extractPronunciations(wikitext: string): Pronunciation[] {
   const out: Pronunciation[] = [];
   const ipaRe = /\{\{\s*IPA\s*\|\s*([^}|]+)/gi;
-  let m: RegExpExecArray | null;
-  while ((m = ipaRe.exec(wikitext)) !== null) {
+  for (const m of wikitext.matchAll(ipaRe)) {
     const ipa = m[1]?.trim();
     if (ipa) out.push({ ipa });
   }
