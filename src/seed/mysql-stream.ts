@@ -20,8 +20,9 @@ export class MysqlInsertStream extends Transform {
 
   override _transform(chunk: Buffer | string, _enc: BufferEncoding, cb: TransformCallback): void {
     this.buffer += typeof chunk === 'string' ? chunk : chunk.toString('utf8');
-    let idx: number;
-    while ((idx = this.findStatementEnd(this.buffer)) !== -1) {
+    for (;;) {
+      const idx = this.findStatementEnd(this.buffer);
+      if (idx === -1) break;
       const stmt = this.buffer.slice(0, idx + 1).trim();
       this.buffer = this.buffer.slice(idx + 1);
       this.handleStatement(stmt);
@@ -58,8 +59,7 @@ export class MysqlInsertStream extends Transform {
     const table = tableMatch[1];
     const cols: string[] = [];
     const colRe = /^\s*`([^`]+)`\s+[A-Z]/gim;
-    let m: RegExpExecArray | null;
-    while ((m = colRe.exec(stmt)) !== null) {
+    for (const m of stmt.matchAll(colRe)) {
       if (m[1]) cols.push(m[1]);
     }
     this.columnMap.set(table, cols);
