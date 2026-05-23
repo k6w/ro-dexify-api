@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>merge - DOOM 3</title>
+    <title>casă - DOOM 3</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -55,7 +55,7 @@
             <div class="d-flex justify-content-end">
                 <form action="/cautare/q/" id="searchForm">
                     <div class="input-group">
-                        <input class="form-control border border-end-0 ms-1 pe-4" type="text" placeholder="Caută în dicționar" id="queryInput" value="merge">
+                        <input class="form-control border border-end-0 ms-1 pe-4" type="text" placeholder="Caută în dicționar" id="queryInput" value="casă">
                         <button type="button" class="btn bg-transparent px-1" style="margin-left: -25px; z-index: 100;" id="clearQueryButton">
                             <i class="ri-close-fill"></i>
                         </button>
@@ -98,9 +98,9 @@
 
 
 <div class="collapse container d-lg-block d-xl-block d-xxl-block" id="collapseFilter">
-    <form id="filter-form" action="/cautare/q/merge/?orderBy=merge">
-        <input type="hidden" id="queryInput" value="merge">
-        <input type="hidden" name="orderBy" id="orderByInput" value='merge'>
+    <form id="filter-form" action="/cautare/q/cas%C4%83/?orderBy=casă">
+        <input type="hidden" id="queryInput" value="casă">
+        <input type="hidden" name="orderBy" id="orderByInput" value='casă'>
         <div class="accordion my-0 mb-3 mt-0" id="accordionSearchFilter">
             
 
@@ -125,7 +125,7 @@
           
             cuvinte-titlu
           
-        </div><div class="col-5 text-end">2</div>
+        </div><div class="col-5 text-end">4</div>
       </label>
     </div>
   
@@ -136,7 +136,7 @@
           
             forme flexionare
           
-        </div><div class="col-5 text-end">2</div>
+        </div><div class="col-5 text-end">5</div>
       </label>
     </div>
   
@@ -163,12 +163,12 @@
   
   
     <div class="form-check py-0 m-0">
-      <input class="form-check-input filter-checkbox" type="checkbox" value="verb" name="pos" id="pos_verb" childIds="pos_verb_posType_activ" >
-      <label class="row form-check-label" for="pos_verb">
+      <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv" name="pos" id="pos_substantiv" childIds="pos_substantiv_posType_comun pos_substantiv_posGender_masculin pos_substantiv_posGender_feminin pos_substantiv_posNumber_singular pos_substantiv_posNumber_plural" >
+      <label class="row form-check-label" for="pos_substantiv">
         <div class="col-7 text-start">
           
             <div class="dropdown">
-              verb
+              substantiv
               <button class="btn btn-sm dropdown-toggle px-0 py-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
               
 
@@ -180,9 +180,65 @@
       <li>
         <button class="dropdown-item px-1 py-0" type="button">
           <div class="form-check py-0 m-0">
-            <input class="form-check-input filter-checkbox" type="checkbox" value="verb:activ" name="posType" id="pos_verb_posType_activ" parentId="pos_verb" >
-            <label class="row form-check-label" for="pos_verb_posType_activ">
-              <div class="col-7 text-start">activ</div><div class="col-5 text-end">4</div>
+            <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv:comun" name="posType" id="pos_substantiv_posType_comun" parentId="pos_substantiv" >
+            <label class="row form-check-label" for="pos_substantiv_posType_comun">
+              <div class="col-7 text-start">comun</div><div class="col-5 text-end">9</div>
+            </label>
+          </div>
+        </button>
+      </li>
+    
+    
+      <li><hr class="dropdown-divider"></li>
+    
+  
+    <li><h6 class="dropdown-header">Gen</h6></li>
+    
+      <li>
+        <button class="dropdown-item px-1 py-0" type="button">
+          <div class="form-check py-0 m-0">
+            <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv:masculin" name="posGender" id="pos_substantiv_posGender_masculin" parentId="pos_substantiv" >
+            <label class="row form-check-label" for="pos_substantiv_posGender_masculin">
+              <div class="col-7 text-start">masculin</div><div class="col-5 text-end">2</div>
+            </label>
+          </div>
+        </button>
+      </li>
+    
+      <li>
+        <button class="dropdown-item px-1 py-0" type="button">
+          <div class="form-check py-0 m-0">
+            <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv:feminin" name="posGender" id="pos_substantiv_posGender_feminin" parentId="pos_substantiv" >
+            <label class="row form-check-label" for="pos_substantiv_posGender_feminin">
+              <div class="col-7 text-start">feminin</div><div class="col-5 text-end">7</div>
+            </label>
+          </div>
+        </button>
+      </li>
+    
+    
+      <li><hr class="dropdown-divider"></li>
+    
+  
+    <li><h6 class="dropdown-header">Număr</h6></li>
+    
+      <li>
+        <button class="dropdown-item px-1 py-0" type="button">
+          <div class="form-check py-0 m-0">
+            <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv:singular" name="posNumber" id="pos_substantiv_posNumber_singular" parentId="pos_substantiv" >
+            <label class="row form-check-label" for="pos_substantiv_posNumber_singular">
+              <div class="col-7 text-start">singular</div><div class="col-5 text-end">6</div>
+            </label>
+          </div>
+        </button>
+      </li>
+    
+      <li>
+        <button class="dropdown-item px-1 py-0" type="button">
+          <div class="form-check py-0 m-0">
+            <input class="form-check-input filter-checkbox" type="checkbox" value="substantiv:plural" name="posNumber" id="pos_substantiv_posNumber_plural" parentId="pos_substantiv" >
+            <label class="row form-check-label" for="pos_substantiv_posNumber_plural">
+              <div class="col-7 text-start">plural</div><div class="col-5 text-end">3</div>
             </label>
           </div>
         </button>
@@ -194,7 +250,7 @@
 
             </div>
           
-        </div><div class="col-5 text-end">4</div>
+        </div><div class="col-5 text-end">9</div>
       </label>
     </div>
   
@@ -311,7 +367,7 @@
           
 <div class="text-end">
   
-    4 rezultate
+    9 rezultate
   
 </div>
 
@@ -319,8 +375,34 @@
     
       <div class="fs-5">
         <span class="doom-entry-type" xmlns:tei="http://www.tei-c.org/ns/1.0">&nbsp;</span><root>
-    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00000-HLAH-98228" sortKey="merge.1 (a ~)-00" type="lemma" n="1" rendition="#1">
-        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">m<span style="text-decoration:underline">e</span>rge<sup>1</sup></span><span class="bg-primary bg-opacity-10" style="font-weight: bold"> (a ~)</span> (a o duce) vb., ind. prez. 3 sg. (<span style="font-style:italic">&icirc;mi </span>etc.) <span class="bg-primary bg-opacity-10" style="font-style: italic;">m<span style="text-decoration:underline">e</span>rge</span>, perf. s. 3 sg. <span style="font-style: italic;">m<span style="text-decoration:underline">e</span>rse</span>, m.m.c.p. 3 sg. <span style="font-style: italic;">mers<span style="text-decoration:underline">e</span>se</span>; conj. prez. 3 <span style="font-style: italic;">să me<span style="text-decoration:underline">a</span>rgă</span>; ger. <span style="font-style: italic;">merg<span style="text-decoration:underline">&acirc;</span>ndu</span> (<span style="font-style:italic">-mi</span>); part. <span style="font-style: italic;">mers</span> (<span style="font-style:italic">Pot spune că &icirc;mi/&icirc;ți/&icirc;i </span>etc.<span style="font-style:italic"> merge bine. &Icirc;ți doresc să &icirc;ți/să-ți meargă bine. Cum vă mai merge?</span>)
+    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00002-DVQE-65794" sortKey="casă-00" type="lemma">
+        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">c<span style="text-decoration:underline">a</span>să</span> s. f., g.-d. art. <span style="font-style: italic;">c<span style="text-decoration:underline">a</span>sei</span>; pl. <span style="font-style: italic;">c<span style="text-decoration:underline">a</span>se</span> (dar:<span style="font-style:italic"> Casa Corpului Didactic, Casa Regală a Rom&acirc;niei</span> s. proprii f. art.)
+    </entry>
+</root>
+
+          
+      </div>
+      <hr/>
+    
+  
+    
+      <div class="fs-5">
+        <span class="doom-entry-type" xmlns:tei="http://www.tei-c.org/ns/1.0">&nbsp;</span><root>
+    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00003-HMLX-82782" sortKey="casă-muzeu-00" type="lemma">
+        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">casă-muz<span style="text-decoration:underline">e</span>u</span> s. f., g.-d. art. <span style="font-style: italic;">casei-muz<span style="text-decoration:underline">e</span>u</span>; pl. <span style="font-style: italic;">case-muz<span style="text-decoration:underline">e</span>u</span>
+    </entry>
+</root>
+
+          
+      </div>
+      <hr/>
+    
+  
+    
+      <div class="fs-5">
+        <span class="doom-entry-type" xmlns:tei="http://www.tei-c.org/ns/1.0">&nbsp;</span><root>
+    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00003-AGMR-89417" sortKey="molie-de-casă-00" type="lemma">
+        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">molie-de-c<span style="text-decoration:underline">a</span>să</span> (crustaceu) (desp. <span class="doom-tooltip" title="despărțirea in silabe" style="font-style: italic;">-li-e-</span>) s. f., art. <span class="bg-primary bg-opacity-10" style="font-style: italic;">molia-de-c<span style="text-decoration:underline">a</span>să</span> (desp. <span class="doom-tooltip" title="despărțirea in silabe" style="font-style: italic;">-li-a-</span>), g.-d. art. <span class="bg-primary bg-opacity-10" style="font-style: italic;">moliei-de-c<span style="text-decoration:underline">a</span>să</span>; pl. <span class="bg-primary bg-opacity-10" style="font-style: italic;">molii-de-c<span style="text-decoration:underline">a</span>să</span>, art. <span class="bg-primary bg-opacity-10" style="font-style: italic;">moliile-de-c<span style="text-decoration:underline">a</span>să</span> (desp. <span class="doom-tooltip" title="despărțirea in silabe" style="font-style: italic;">-li-i-</span>)
     </entry>
 </root>
 
@@ -332,8 +414,8 @@
     
       <div class="fs-5 mb-3">
         <span class="doom-entry-type" xmlns:tei="http://www.tei-c.org/ns/1.0">&nbsp;</span><root>
-    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00002-FDPJ-90070" sortKey="merge.2 (a ~)-00" type="lemma" n="2" rendition="#1">
-        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">m<span style="text-decoration:underline">e</span>rge<sup>2</sup></span><span class="bg-primary bg-opacity-10" style="font-weight: bold"> (a ~)</span> (a umbla) vb., ind. prez. 1 sg. <span style="font-style: italic;">merg</span>, 3 sg. <span class="bg-primary bg-opacity-10" style="font-style: italic;">m<span style="text-decoration:underline">e</span>rge</span>, perf. s. 1 sg. <span style="font-style: italic;">mers<span style="text-decoration:underline">e</span>i</span>, 1 pl. <span style="font-style: italic;">m<span style="text-decoration:underline">e</span>rserăm</span>, m.m.c.p. 1 pl. <span style="font-style: italic;">mers<span style="text-decoration:underline">e</span>serăm</span>; conj. prez. 1 sg. <span style="font-style: italic;">să merg</span>, 3 <span style="font-style: italic;">să me<span style="text-decoration:underline">a</span>rgă</span>; ger. <span style="font-style: italic;">merg<span style="text-decoration:underline">&acirc;</span>nd</span>; part. <span style="font-style: italic;">mers</span>
+    <entry xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xml:id="AAAA-00001-CPKP-27230" sortKey="g&acirc;ndac-de-casă-00" type="lemma">
+        <span xmlns="" class="bg-primary bg-opacity-10" style="font-weight: bold">g&acirc;ndac-de-c<span style="text-decoration:underline">a</span>să</span> (insectă) s. m., pl. <span class="bg-primary bg-opacity-10" style="font-style: italic;">g&acirc;ndaci-de-c<span style="text-decoration:underline">a</span>să</span>
     </entry>
 </root>
 
