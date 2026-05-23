@@ -15,12 +15,13 @@
  *   pnpm fixtures:refresh -- --source doom # one source
  *   pnpm fixtures:refresh -- --word casă   # one word
  */
-import { mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fetchText } from '../src/http/client.js';
-import { getLogger } from '../src/lib/logger.js';
 import { asciiFold } from '../src/lib/headword.js';
+import { getLogger } from '../src/lib/logger.js';
 import { buildDexonlineJsonUrl, buildDexonlineUrl } from '../src/providers/dexonline/url.js';
 import { buildDoomUrl } from '../src/providers/doom/url.js';
 import { buildMdexUrl } from '../src/providers/mdex/url.js';
@@ -127,8 +128,15 @@ async function politeDelay(host: string, minIntervalMs: number): Promise<void> {
 function parseArgs(argv: string[]): { source?: string; word?: string } {
   const out: { source?: string; word?: string } = {};
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--source' && argv[i + 1]) out.source = argv[++i];
-    if (argv[i] === '--word' && argv[i + 1]) out.word = argv[++i];
+    const next = argv[i + 1];
+    if (next === undefined) continue;
+    if (argv[i] === '--source') {
+      out.source = next;
+      i++;
+    } else if (argv[i] === '--word') {
+      out.word = next;
+      i++;
+    }
   }
   return out;
 }
@@ -174,7 +182,10 @@ async function main(): Promise<void> {
           ...(r.contentType ? { contentType: r.contentType } : {}),
           recordedAt: new Date().toISOString(),
         });
-        logger.info({ file: `${src.dir}/${name}`, status: r.status, bytes: r.body.length }, 'wrote');
+        logger.info(
+          { file: `${src.dir}/${name}`, status: r.status, bytes: r.body.length },
+          'wrote',
+        );
       } catch (e) {
         failures++;
         logger.error({ err: String(e), provider: src.dir, word }, 'fetch_failed');
@@ -182,12 +193,22 @@ async function main(): Promise<void> {
     }
   }
 
-  manifest.sort((a, b) => a.file.localeCompare(b.file));
-  await writeFile(
-    resolve(FIXTURE_DIR, 'manifest.json'),
-    `${JSON.stringify(manifest, null, 2)}\n`,
-    'utf8',
-  );
+  // A filtered run must not drop the rest of the manifest: `--source wiktionary
+  // --word ou` previously rewrote the file with that single entry.
+  const manifestPath = resolve(FIXTURE_DIR, 'manifest.json');
+  const merged = new Map<string, ManifestEntry>();
+  if (existsSync(manifestPath)) {
+    try {
+      const prior = JSON.parse(await readFile(manifestPath, 'utf8')) as ManifestEntry[];
+      for (const e of prior) merged.set(e.file, e);
+    } catch {
+      logger.warn({ manifestPath }, 'manifest_unreadable_rewriting');
+    }
+  }
+  for (const e of manifest) merged.set(e.file, e);
+
+  const out = [...merged.values()].sort((a, b) => a.file.localeCompare(b.file));
+  await writeFile(manifestPath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
 
   logger.info({ recorded: manifest.length, failures }, 'fixtures_refreshed');
   if (failures > 0) process.exitCode = 1;
