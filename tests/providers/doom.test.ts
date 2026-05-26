@@ -118,6 +118,32 @@ describe('DoomParser', () => {
       expect(forms).toContain('mers');
     });
 
+    it('keeps a form whose label contains a parenthetical aside', () => {
+      // "ind. prez. 3 sg. (îmi etc.) merge" -- the bracketed italic "îmi" must
+      // not consume the label and drop the form that follows it.
+      const merge = entries().flatMap((e) => e.inflections);
+      const indPrez = merge.find(
+        (i) => i.tags.includes('indicative') && i.tags.includes('present') && i.form === 'merge',
+      );
+      expect(indPrez, 'ind. prez. 3 sg. "merge" should be extracted').toBeDefined();
+    });
+
+    it('inherits the elided tense when DOOM only repeats person/number', () => {
+      // "perf. s. 1 sg. mersei, 1 pl. merserăm" -- the second form's label is
+      // just "1 pl."; the tense carries over from the previous form.
+      const forms = entries().flatMap((e) => e.inflections);
+      const merseram = forms.find((i) => i.form === 'merserăm');
+      expect(merseram?.tags).toEqual(expect.arrayContaining(['indicative', 'simple-perfect']));
+      expect(merseram?.tags).toContain('plural');
+    });
+
+    it('applies the same carry-over in the subjunctive', () => {
+      // "conj. prez. 1 sg. să merg, 3 să meargă"
+      const forms = entries().flatMap((e) => e.inflections);
+      const mearga = forms.find((i) => i.form === 'meargă');
+      expect(mearga?.tags).toEqual(expect.arrayContaining(['subjunctive', 'present']));
+    });
+
     it('validates against the entry schema', () => {
       for (const e of entries()) NormalizedEntry.parse(e);
     });
