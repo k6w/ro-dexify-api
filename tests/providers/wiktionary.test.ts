@@ -21,7 +21,8 @@ import { firstOrThrow, fixture } from '../helpers.js';
  */
 describe('WiktionaryParser', () => {
   describe('casă', () => {
-    const entry = () => firstOrThrow(parseWiktionary(fixture('wiktionary', 'casă'), 'casă'), 'entry');
+    const entry = () =>
+      firstOrThrow(parseWiktionary(fixture('wiktionary', 'casă'), 'casă'), 'entry');
 
     it('reads the part of speech from {{-substantiv-|ron}}', () => {
       expect(entry().partOfSpeech).toBe('substantiv');
@@ -90,7 +91,9 @@ describe('WiktionaryParser', () => {
     });
 
     it('renders wikilinks as plain text', () => {
-      const joined = entry().senses.map((s) => s.text).join(' ');
+      const joined = entry()
+        .senses.map((s) => s.text)
+        .join(' ');
       expect(joined).not.toMatch(/\[\[|\]\]/);
       // [[avea|având]] must render as the label, not the target.
       expect(joined).toContain('având');
@@ -114,6 +117,41 @@ describe('WiktionaryParser', () => {
 
     it('validates against the entry schema', () => {
       NormalizedEntry.parse(entry());
+    });
+  });
+
+  describe('multi-language pages', () => {
+    it('ignores pronunciations from other language sections', () => {
+      // ou.json carries {{limba|ron}}, {{limba|cat}}, {{limba|eng}} and
+      // {{limba|fra}} sections. Scanning the whole page picked up the English
+      // and French IPA as if they were Romanian.
+      const e = firstOrThrow(parseWiktionary(fixture('wiktionary', 'ou'), 'ou'), 'entry');
+      const ipa = e.pronunciations.map((p) => p.ipa);
+      for (const foreign of ['/ˈəʊuː/', '/ˈoʊˈu/', '/əʊ/', '/u/']) {
+        expect(ipa).not.toContain(foreign);
+      }
+      expect(ipa.length).toBeGreaterThan(0);
+    });
+
+    it('ignores the English section of "merge"', () => {
+      const e = firstOrThrow(parseWiktionary(fixture('wiktionary', 'merge'), 'merge'), 'entry');
+      expect(e.pronunciations.map((p) => p.ipa)).not.toContain('/mɜrdʒ/');
+    });
+  });
+
+  describe('verbs', () => {
+    it('reads the conjugation template {{verb-ron}}', () => {
+      // {{verb-ron|inf=merge|ind=merg|conj=meargă|part=mers|cj=III}}
+      const e = firstOrThrow(parseWiktionary(fixture('wiktionary', 'merge'), 'merge'), 'entry');
+      const byForm = (f: string) => e.inflections.find((i) => i.form === f);
+      expect(byForm('merg')?.tags).toContain('indicative');
+      expect(byForm('meargă')?.tags).toContain('subjunctive');
+      expect(byForm('mers')?.tags).toContain('participle');
+    });
+
+    it('records the conjugation class', () => {
+      const e = firstOrThrow(parseWiktionary(fixture('wiktionary', 'merge'), 'merge'), 'entry');
+      expect(e.conjugation?.classRoman).toBe('III');
     });
   });
 
