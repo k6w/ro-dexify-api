@@ -2,7 +2,7 @@ import { TTL_SECONDS } from '../../cache/ttl.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseDexonline } from './parse.js';
-import { buildDexonlineUrl } from './url.js';
+import { buildDexonlineJsonUrl } from './url.js';
 
 export class DexonlineProvider extends BaseProvider {
   readonly meta: ProviderMeta = {
@@ -23,8 +23,14 @@ export class DexonlineProvider extends BaseProvider {
     enabled: true,
   };
 
+  // The JSON endpoint carries DEXonline's structured internalRep markup and is
+  // ~35% smaller than the rendered page.
   buildUrl(word: string): string {
-    return buildDexonlineUrl(word);
+    return buildDexonlineJsonUrl(word);
+  }
+
+  protected override extraHeaders(): Record<string, string> {
+    return { accept: 'application/json' };
   }
 
   parse(body: string, word: string) {

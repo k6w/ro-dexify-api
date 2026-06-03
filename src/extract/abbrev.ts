@@ -31,6 +31,8 @@ const POS_PATTERNS: Array<[RegExp, PartOfSpeech]> = [
   [/\blocuțiun\w*/i, 'locuțiune'],
   [/\bexpr\b\.?|\bexpresie\b/i, 'expresie'],
   [/\bs\.\s*[fmn]\b\.?|\bsubstantiv\w*/i, 'substantiv'],
+  // MDA2 and DER write the compact forms without periods.
+  [/\bs[fmn]\b/i, 'substantiv'],
   [/\bsubst\b\.?/i, 'substantiv'],
   [/\bvb\b\.?|\bverb\w*/i, 'verb'],
   [/\badj\b\.?|\badjectiv\w*/i, 'adjectiv'],
@@ -44,9 +46,9 @@ const POS_PATTERNS: Array<[RegExp, PartOfSpeech]> = [
 ];
 
 const GENDER_PATTERNS: Array<[RegExp, Gender]> = [
-  [/\bs\.\s*f\b\.?|\bsubstantiv\s+feminin\b|\bfeminin\b|\bf\.\s*pl\b/i, 'feminin'],
-  [/\bs\.\s*m\b\.?|\bsubstantiv\s+masculin\b|\bmasculin\b/i, 'masculin'],
-  [/\bs\.\s*n\b\.?|\bsubstantiv\s+neutru\b|\bneutru\b/i, 'neutru'],
+  [/\bs\.\s*f\b\.?|\bsf\b|\bsubstantiv\s+feminin\b|\bfeminin\b|\bf\.\s*pl\b/i, 'feminin'],
+  [/\bs\.\s*m\b\.?|\bsm\b|\bsubstantiv\s+masculin\b|\bmasculin\b/i, 'masculin'],
+  [/\bs\.\s*n\b\.?|\bsn\b|\bsubstantiv\s+neutru\b|\bneutru\b/i, 'neutru'],
 ];
 
 /**

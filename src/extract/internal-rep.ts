@@ -110,7 +110,28 @@ export function renderInternalRep(raw: string): RenderedRep {
     text += ch;
   }
 
-  return { text: text.replace(/[ \t]+/g, ' ').trim(), spans };
+  return { text: cleanBody(text), spans };
+}
+
+/**
+ * DEXonline sprinkles decorative section markers through definitions (◼ ■ ⦿ ⚚
+ * ❍ ▭ ▶ ◀ ║ ‡ • and others), and writes the tonic accent as an apostrophe
+ * before the stressed vowel. The accent belongs on the headword, not in the
+ * middle of running text ("c'asei" should read "casei").
+ */
+const DECORATIVE_MARKERS = /[◼■⦿⚚❍▭▶◀║‡•→♠⛹⚖ⒻⓅ]/g;
+
+function cleanBody(text: string): string {
+  return (
+    text
+      .replace(DECORATIVE_MARKERS, ' ')
+      // Accent apostrophe: between a letter and a vowel. Leaves genuine elisions
+      // such as Scriban's "A sta'n casă" alone, because "n" is not a vowel.
+      .replace(/(\p{L})'(?=[aăâeiîouAĂÂEIÎOU])/gu, '$1')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\s+([,.;:])/g, '$1')
+      .trim()
+  );
 }
 
 export interface Headword {
