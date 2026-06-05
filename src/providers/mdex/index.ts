@@ -14,7 +14,12 @@ export class MdexProvider extends BaseProvider {
     capabilities: new Set(['definitions', 'examples']),
     ttlSeconds: TTL_SECONDS.mdex,
     rateLimit: { minIntervalMs: 2000, concurrency: 1 },
-    enabled: true,
+    // m.dex.ro mirrors the same DEXonline corpus the `dexonline` provider now
+    // reads as structured JSON, in markup that carries strictly less
+    // information. Including it by default duplicated every definition and
+    // doubled the request budget for no extra coverage, so it is opt-in via
+    // ?sources=mdex and serves as a fallback when dexonline is unavailable.
+    enabled: false,
   };
 
   buildUrl(word: string): string {
