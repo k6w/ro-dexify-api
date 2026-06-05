@@ -89,9 +89,20 @@ export function parseDexonline(
 
   // A search for "casă" also returns casă-muzeu, molie-de-casă and gândac, which
   // are different lemmas. Keep them only on request.
+  //
+  // Prefer an exact match before falling back to diacritic-insensitive folding:
+  // "casă" (house) and "casa" (to quash) are distinct lemmas that fold together,
+  // so folding alone returned the verb under the noun's query. Folding still
+  // applies when the query itself is unaccented, which is the case it exists for.
   if (!options.includeRelated) {
-    const exact = built.filter((b) => foldKey(b.entry.headword) === target);
-    if (exact.length > 0) built = exact;
+    const exactWord = word.normalize('NFC').toLocaleLowerCase('ro-RO');
+    const exact = built.filter((b) => b.entry.headword === exactWord);
+    if (exact.length > 0) {
+      built = exact;
+    } else {
+      const folded = built.filter((b) => foldKey(b.entry.headword) === target);
+      if (folded.length > 0) built = folded;
+    }
   }
 
   if (built.length === 0) return [];

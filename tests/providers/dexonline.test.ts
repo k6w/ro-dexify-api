@@ -26,9 +26,9 @@ describe('DexonlineParser', () => {
     });
 
     it('returns everything when asked', () => {
-      // 120 raw definitions; 40 survive lemma matching and the orthographic
-      // exclusion, all of which `all: true` returns without deduplication.
-      expect(casa({ all: true }).length).toBeGreaterThan(30);
+      // 120 raw definitions; 28 survive exact-lemma matching and the
+      // orthographic exclusion, all returned without deduplication.
+      expect(casa({ all: true }).length).toBeGreaterThan(20);
       expect(casa({ all: true, includeRelated: true }).length).toBeGreaterThan(
         casa({ all: true }).length,
       );
@@ -114,6 +114,19 @@ describe('DexonlineParser', () => {
 
     it('collapses near-duplicate senses across dictionaries', () => {
       expect(casa().length).toBeLessThan(casa({ all: true }).length);
+    });
+
+    it('does not return the verb "casa" for the noun "casă"', () => {
+      // Both fold to "casa", so diacritic-insensitive matching alone merged two
+      // distinct lemmas and put "A anula o hotărâre judecătorească" under casă.
+      for (const e of casa({ all: true })) {
+        expect(e.headword).toBe('casă');
+      }
+    });
+
+    it('still resolves an unaccented query through folding', () => {
+      const viaFold = parseDexonline(fixture('dexonline', 'casa'), 'casa');
+      expect(viaFold.length).toBeGreaterThan(0);
     });
 
     it('validates against the entry schema', () => {
