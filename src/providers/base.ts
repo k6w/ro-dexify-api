@@ -48,9 +48,15 @@ export abstract class BaseProvider implements Provider {
 
     const url = this.buildUrl(headword);
     const host = new URL(url).host;
-    const allowed = await isAllowed(url, config.USER_AGENT, opts.logger);
-    if (!allowed) {
-      throw new ApiException('PROVIDER_BLOCKED_BY_ROBOTS', `${meta.id} disallowed by robots.txt`);
+    // robots.txt governs crawling. A provider marked 'official-api' talks to an
+    // endpoint its operator documents for programmatic use and polices through
+    // User-Agent and rate-limit policy instead; the rate limit below still
+    // applies. See ProviderMeta.robotsPolicy.
+    if (meta.robotsPolicy !== 'official-api') {
+      const allowed = await isAllowed(url, config.USER_AGENT, opts.logger);
+      if (!allowed) {
+        throw new ApiException('PROVIDER_BLOCKED_BY_ROBOTS', `${meta.id} disallowed by robots.txt`);
+      }
     }
 
     const breaker = getBreaker(meta.id);

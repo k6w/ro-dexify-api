@@ -21,6 +21,11 @@ export class WiktionaryProvider extends BaseProvider {
     ttlSeconds: TTL_SECONDS.wiktionary,
     rateLimit: { minIntervalMs: 250, concurrency: 4 },
     enabled: true,
+    // ro.wiktionary.org/w/api.php is the MediaWiki Action API, which Wikimedia
+    // documents for programmatic access and rate-limits itself. Their
+    // robots.txt Disallow: /w/ exists to stop search engines indexing dynamic
+    // duplicates of wiki pages, not to bar API clients.
+    robotsPolicy: 'official-api',
   };
 
   buildUrl(word: string): string {
