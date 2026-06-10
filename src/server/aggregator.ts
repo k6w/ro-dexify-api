@@ -2,7 +2,8 @@ import { loadConfig } from '../config.js';
 import type { Logger } from '../lib/logger.js';
 import { getProvider, listProviders } from '../providers/registry.js';
 import type { Provider } from '../providers/types.js';
-import type { Capability, NormalizedEntry, ProviderId } from '../schema/entry.js';
+import type { EntryV2 } from '../schema/entry-v2.js';
+import type { Capability, ProviderId } from '../schema/entry.js';
 import { ApiException, type ErrorCode, type ProviderError } from '../schema/errors.js';
 
 export interface AggregateOpts {
@@ -14,7 +15,7 @@ export interface AggregateOpts {
 }
 
 export interface AggregateResult {
-  entries: NormalizedEntry[];
+  entries: EntryV2[];
   errors: ProviderError[];
   cache: { hits: number; misses: number };
 }
@@ -32,7 +33,7 @@ export async function aggregate(opts: AggregateOpts): Promise<AggregateResult> {
   );
   clearTimeout(totalTimer);
 
-  const entries: NormalizedEntry[] = [];
+  const entries: EntryV2[] = [];
   const errors: ProviderError[] = [];
   let hits = 0;
   let misses = 0;
@@ -81,7 +82,7 @@ async function callOne(
   opts: AggregateOpts,
   parentSignal: AbortSignal,
   perProviderTimeoutMs: number,
-): Promise<NormalizedEntry[]> {
+): Promise<EntryV2[]> {
   const ac = new AbortController();
   const onAbort = () => ac.abort();
   parentSignal.addEventListener('abort', onAbort, { once: true });

@@ -1,4 +1,5 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseMdex } from './parse.js';
@@ -27,6 +28,6 @@ export class MdexProvider extends BaseProvider {
   }
 
   parse(body: string, word: string) {
-    return parseMdex(body, word);
+    return liftEntries(parseMdex(body, word), { authority: 40 });
   }
 }

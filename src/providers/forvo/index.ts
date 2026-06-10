@@ -1,7 +1,8 @@
 import { getDb } from '../../cache/sqlite.js';
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { loadConfig } from '../../config.js';
-import type { NormalizedEntry } from '../../schema/entry.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
+import type { EntryV2 } from '../../schema/entry-v2.js';
 import { ApiException } from '../../schema/errors.js';
 import { BaseProvider } from '../base.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
@@ -27,10 +28,10 @@ export class ForvoProvider extends BaseProvider {
   }
 
   parse(body: string, word: string) {
-    return parseForvo(body, word);
+    return liftEntries(parseForvo(body, word), { authority: 55 });
   }
 
-  override async lookup(word: string, opts: LookupOpts): Promise<NormalizedEntry[]> {
+  override async lookup(word: string, opts: LookupOpts): Promise<EntryV2[]> {
     const cfg = loadConfig();
     if (!cfg.FORVO_API_KEY) {
       throw new ApiException('PROVIDER_DISABLED', 'forvo: FORVO_API_KEY not set');

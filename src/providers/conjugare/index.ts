@@ -2,6 +2,8 @@ import { getDb } from '../../cache/sqlite.js';
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { normalizeHeadword } from '../../lib/headword.js';
 import { deterministicId } from '../../lib/id.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
+import type { EntryV2 } from '../../schema/entry-v2.js';
 import type { NormalizedEntry } from '../../schema/entry.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
 import { conjugateRomanianVerb } from './rules.js';
@@ -23,14 +25,23 @@ export class ConjugareProvider {
     return 'urn:local:conjugare';
   }
 
-  parse(_body: string, word: string): NormalizedEntry[] {
-    return this.computeEntries(word, 'rules');
+  parse(_body: string, word: string): EntryV2[] {
+    // Rule-engine output: mark it derived so callers can tell it apart from a
+    // form a dictionary actually attests.
+    return liftEntries(this.computeEntries(word, 'rules'), {
+      authority: 20,
+      origin: 'derived',
+    });
   }
 
-  async lookup(word: string, _opts: LookupOpts): Promise<NormalizedEntry[]> {
+  async lookup(word: string, _opts: LookupOpts): Promise<EntryV2[]> {
     const seeded = lookupSeeded(word);
-    if (seeded) return [seeded];
-    return this.computeEntries(word, 'rules');
+    // Seeded forms come from the DEX dump, so they are attested.
+    if (seeded) return liftEntries([seeded], { authority: 70 });
+    return liftEntries(this.computeEntries(word, 'rules'), {
+      authority: 20,
+      origin: 'derived',
+    });
   }
 
   private computeEntries(word: string, source: 'rules' | 'seeded'): NormalizedEntry[] {

@@ -1,5 +1,6 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
 import { loadConfig } from '../../config.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseDlr } from './parse.js';
@@ -23,6 +24,6 @@ export class DlrProvider extends BaseProvider {
   }
 
   parse(body: string, word: string) {
-    return parseDlr(body, word);
+    return liftEntries(parseDlr(body, word), { authority: 60 });
   }
 }

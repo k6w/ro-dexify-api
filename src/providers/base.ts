@@ -1,26 +1,26 @@
 import { createHash } from 'node:crypto';
 import { getMem, setMem } from '../cache/memory.js';
-import { getCachedLookup, getDb, loadEntries, persistEntries } from '../cache/sqlite.js';
+import { getCachedLookup, getDb, loadEntriesV2, persistEntries } from '../cache/sqlite.js';
 import { TTL_SECONDS, expiresAtIso } from '../cache/ttl.js';
 import { loadConfig } from '../config.js';
 import { getBreaker } from '../http/breaker.js';
 import { fetchText } from '../http/client.js';
 import { runOnHost } from '../http/ratelimit.js';
 import { isAllowed } from '../http/robots.js';
-import type { NormalizedEntry } from '../schema/entry.js';
+import type { EntryV2 } from '../schema/entry-v2.js';
 import { ApiException } from '../schema/errors.js';
 import type { LookupOpts, Provider, ProviderMeta } from './types.js';
 
 export abstract class BaseProvider implements Provider {
   abstract readonly meta: ProviderMeta;
   abstract buildUrl(word: string): string;
-  abstract parse(body: string, word: string): NormalizedEntry[];
+  abstract parse(body: string, word: string): EntryV2[];
 
   protected extraHeaders(): Record<string, string> {
     return {};
   }
 
-  async lookup(word: string, opts: LookupOpts): Promise<NormalizedEntry[]> {
+  async lookup(word: string, opts: LookupOpts): Promise<EntryV2[]> {
     const config = loadConfig();
     const headword = word;
     const meta = this.meta;
@@ -39,7 +39,7 @@ export abstract class BaseProvider implements Provider {
     const cached = !opts.refresh ? getCachedLookup(db, meta.id, headword) : undefined;
     const now = new Date();
     if (cached && new Date(cached.expiresAt) > now) {
-      const entries = loadEntries(db, meta.id, headword).map((e) =>
+      const entries = loadEntriesV2(db, meta.id, headword).map((e) =>
         attachMetaToCachedEntry(e, meta),
       );
       setMem(meta.id, headword, entries, 5 * 60 * 1000);
@@ -85,7 +85,7 @@ export abstract class BaseProvider implements Provider {
       db.prepare(
         'UPDATE lookups SET fetched_at = ?, expires_at = ? WHERE provider_id = ? AND headword = ?',
       ).run(now.toISOString(), ttl, meta.id, headword);
-      const entries = loadEntries(db, meta.id, headword).map((e) =>
+      const entries = loadEntriesV2(db, meta.id, headword).map((e) =>
         attachMetaToCachedEntry(e, meta),
       );
       setMem(meta.id, headword, entries, 5 * 60 * 1000);
@@ -135,7 +135,7 @@ export abstract class BaseProvider implements Provider {
 export const TTL = TTL_SECONDS;
 
 function stampNewEntry(
-  entry: NormalizedEntry,
+  entry: EntryV2,
   source: {
     providerId: ProviderMeta['id'];
     providerName: string;
@@ -144,7 +144,7 @@ function stampNewEntry(
     attribution: string;
     fetchedAt: string;
   },
-): NormalizedEntry {
+): EntryV2 {
   return {
     ...entry,
     source: {
@@ -160,11 +160,11 @@ function stampNewEntry(
   };
 }
 
-function stampSourceForCacheHit(entry: NormalizedEntry): NormalizedEntry {
+function stampSourceForCacheHit(entry: EntryV2): EntryV2 {
   return { ...entry, source: { ...entry.source, cacheHit: true } };
 }
 
-function attachMetaToCachedEntry(entry: NormalizedEntry, meta: ProviderMeta): NormalizedEntry {
+function attachMetaToCachedEntry(entry: EntryV2, meta: ProviderMeta): EntryV2 {
   return {
     ...entry,
     source: {

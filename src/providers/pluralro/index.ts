@@ -2,6 +2,8 @@ import { TTL_SECONDS } from '../../cache/ttl.js';
 import { normalizeHeadword } from '../../lib/headword.js';
 import { deterministicId } from '../../lib/id.js';
 import type { Logger } from '../../lib/logger.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
+import type { EntryV2 } from '../../schema/entry-v2.js';
 import type { Inflection, NormalizedEntry } from '../../schema/entry.js';
 import type { LookupOpts, ProviderMeta } from '../types.js';
 
@@ -29,13 +31,17 @@ export class PluralRoProvider {
     return 'urn:local:pluralro';
   }
 
-  parse(_body: string, word: string): NormalizedEntry[] {
+  parse(_body: string, word: string): EntryV2[] {
     const result = pluralize(word);
     if (!result) return [];
-    return [toEntry(word, result)];
+    return liftEntries([toEntry(word, result)], {
+      authority: 30,
+      origin: 'derived',
+      confidence: result.confident ? 'high' : 'low',
+    });
   }
 
-  async lookup(word: string, _opts: LookupOpts): Promise<NormalizedEntry[]> {
+  async lookup(word: string, _opts: LookupOpts): Promise<EntryV2[]> {
     const entry = this.parse('', word);
     return entry;
   }

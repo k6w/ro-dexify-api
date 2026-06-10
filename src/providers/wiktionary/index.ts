@@ -1,4 +1,5 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseWiktionary } from './parse.js';
@@ -33,6 +34,6 @@ export class WiktionaryProvider extends BaseProvider {
   }
 
   parse(body: string, word: string) {
-    return parseWiktionary(body, word);
+    return liftEntries(parseWiktionary(body, word), { authority: 65 });
   }
 }

@@ -1,5 +1,6 @@
 import type { Logger } from '../lib/logger.js';
-import type { Capability, NormalizedEntry, ProviderId } from '../schema/entry.js';
+import type { EntryV2 } from '../schema/entry-v2.js';
+import type { Capability, ProviderId } from '../schema/entry.js';
 
 export interface ProviderMeta {
   id: ProviderId;
@@ -48,6 +49,6 @@ export interface FetchedBody {
 export interface Provider {
   readonly meta: ProviderMeta;
   buildUrl(word: string): string;
-  parse(body: string, word: string): NormalizedEntry[];
-  lookup(word: string, opts: LookupOpts): Promise<NormalizedEntry[]>;
+  parse(body: string, word: string): EntryV2[];
+  lookup(word: string, opts: LookupOpts): Promise<EntryV2[]>;
 }

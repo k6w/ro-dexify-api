@@ -1,4 +1,5 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
+import { liftEntries } from '../../schema/adapters/lift.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseDoom } from './parse.js';
@@ -22,6 +23,6 @@ export class DoomProvider extends BaseProvider {
   }
 
   parse(body: string, word: string) {
-    return parseDoom(body, word);
+    return liftEntries(parseDoom(body, word), { authority: 98 });
   }
 }
