@@ -17,7 +17,7 @@ import { openapiRoutes } from './server/routes/openapi.js';
 import { pluralizeRoutes } from './server/routes/pluralize.js';
 import { searchRoutes } from './server/routes/search.js';
 import { sourcesRoutes } from './server/routes/sources.js';
-import { wordRoutes } from './server/routes/word.js';
+import { wordRoutes, wordRoutesV2 } from './server/routes/word.js';
 
 export interface AppOptions {
   logger: Logger;
@@ -35,6 +35,8 @@ export function buildApp(opts: AppOptions): Hono {
   app.use('/v1/*', rateLimitMiddleware(cfg.RATE_LIMIT_PER_MIN));
 
   app.route('/v1', wordRoutes);
+  // /v2 serves the full entry: sense tree, relations, paradigm, authority.
+  app.route('/v2', wordRoutesV2);
   app.route('/v1', searchRoutes);
   app.route('/v1', audioRoutes);
   app.route('/v1', conjugateRoutes);
