@@ -1,8 +1,8 @@
 import { LRUCache } from 'lru-cache';
-import type { NormalizedEntry } from '../schema/entry.js';
+import type { EntryV2 } from '../schema/entry-v2.js';
 
 interface MemEntry {
-  entries: NormalizedEntry[];
+  entries: EntryV2[];
   expiresAt: number;
 }
 
@@ -17,7 +17,7 @@ function key(providerId: string, headword: string): string {
   return `${providerId}:${headword}`;
 }
 
-export function getMem(providerId: string, headword: string): NormalizedEntry[] | undefined {
+export function getMem(providerId: string, headword: string): EntryV2[] | undefined {
   const v = cache.get(key(providerId, headword));
   if (!v) return undefined;
   if (v.expiresAt < Date.now()) {
@@ -30,7 +30,7 @@ export function getMem(providerId: string, headword: string): NormalizedEntry[] 
 export function setMem(
   providerId: string,
   headword: string,
-  entries: NormalizedEntry[],
+  entries: EntryV2[],
   ttlMs: number,
 ): void {
   cache.set(key(providerId, headword), { entries, expiresAt: Date.now() + ttlMs });

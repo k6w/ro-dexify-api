@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import type { Database as DatabaseType } from 'better-sqlite3';
 import { newUlid } from '../lib/id.js';
+import { liftEntries } from '../schema/adapters/lift.js';
+import { entryToV1 } from '../schema/adapters/v1.js';
+import type { EntryV2 } from '../schema/entry-v2.js';
 import type { NormalizedEntry } from '../schema/entry.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -83,7 +86,7 @@ export interface PersistOpts {
   lastModified?: string | undefined;
   bodySha256: string;
   expiresAt: string;
-  entries: NormalizedEntry[];
+  entries: EntryV2[];
 }
 
 export function persistEntries(opts: PersistOpts): void {
@@ -120,8 +123,8 @@ export function persistEntries(opts: PersistOpts): void {
     }
 
     const insertEntry = database.prepare(
-      `INSERT INTO entries (id, provider_id, headword, display_headword, pos, gender, source_url, fetched_at, ord)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO entries (id, provider_id, headword, display_headword, pos, gender, source_url, fetched_at, ord, payload_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     const insertSense = database.prepare(
       `INSERT INTO senses (entry_id, number, text, register, domain, ord) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -149,7 +152,11 @@ export function persistEntries(opts: PersistOpts): void {
     );
 
     let ord = 0;
-    for (const entry of entries) {
+    for (const entryV2 of entries) {
+      // The relational tables model v1's flat shape and back entries_fts; the
+      // full v2 entry is stored alongside them in payload_json so a cache hit
+      // does not silently drop the sense tree, relations or paradigm.
+      const entry = entryToV1(entryV2);
       const id = entry.id || newUlid();
       insertEntry.run(
         id,
@@ -161,6 +168,7 @@ export function persistEntries(opts: PersistOpts): void {
         entry.source.url,
         entry.source.fetchedAt,
         ord++,
+        JSON.stringify(entryV2),
       );
       let sord = 0;
       const senseTexts: string[] = [];
@@ -435,4 +443,44 @@ export function sweepExpired(database: DatabaseType): number {
   const now = new Date().toISOString();
   const r = database.prepare('DELETE FROM lookups WHERE expires_at < ?').run(now);
   return Number(r.changes);
+}
+
+/**
+ * Load cached entries as v2.
+ *
+ * Reads `payload_json` where present. Rows written before migration 002 have no
+ * payload, so those fall back to the relational projection lifted into v2 --
+ * lossy for anything v1 could not represent, but never wrong.
+ */
+export function loadEntriesV2(
+  database: DatabaseType,
+  providerId: string,
+  headword: string,
+): EntryV2[] {
+  const rows = database
+    .prepare(
+      `SELECT id, payload_json as payloadJson FROM entries
+       WHERE provider_id = ? AND headword = ? ORDER BY ord`,
+    )
+    .all(providerId, headword) as Array<{ id: string; payloadJson: string | null }>;
+  if (rows.length === 0) return [];
+
+  const out: EntryV2[] = [];
+  let needsFallback = false;
+  for (const row of rows) {
+    if (!row.payloadJson) {
+      needsFallback = true;
+      continue;
+    }
+    try {
+      out.push(JSON.parse(row.payloadJson) as EntryV2);
+    } catch {
+      needsFallback = true;
+    }
+  }
+  if (!needsFallback) return out;
+
+  // Mixed or unreadable payloads: rebuild the whole set from the relational
+  // tables rather than returning a partial list in the wrong order.
+  return liftEntries(loadEntries(database, providerId, headword));
 }

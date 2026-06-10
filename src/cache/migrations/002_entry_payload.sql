@@ -1,0 +1,12 @@
+-- Store the full v2 entry alongside the relational projection.
+--
+-- The entries/senses/examples/inflections tables model v1's flat shape, so a
+-- cache hit would silently downgrade an entry: the sense tree, typed relations,
+-- citations, paradigm and source authority all have no column to live in and
+-- would be lost on the way back out.
+--
+-- The relational tables stay: they back entries_fts and the search endpoint, and
+-- they remain the queryable projection. payload_json is the source of truth for
+-- reads, with the relational rows as a fallback for entries cached before this
+-- migration.
+ALTER TABLE entries ADD COLUMN payload_json TEXT;
