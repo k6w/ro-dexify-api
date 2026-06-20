@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseDexonline } from '../../src/providers/dexonline/parse.js';
-import { NormalizedEntry } from '../../src/schema/entry.js';
+import { EntryV2 } from '../../src/schema/entry-v2.js';
 import { firstOrThrow, fixture } from '../helpers.js';
 
 /**
@@ -129,8 +129,27 @@ describe('DexonlineParser', () => {
       expect(viaFold.length).toBeGreaterThan(0);
     });
 
+    it('nests locutions and sub-senses as typed children, not as senses', () => {
+      const first = firstOrThrow(casa(), 'entry');
+      const kinds = new Set(first.senses.flatMap((s) => s.children.map((c) => c.type)));
+      expect(kinds.has('sub-meaning') || kinds.has('locution') || kinds.has('expression')).toBe(
+        true,
+      );
+      // A ◊/♦ item must never appear as a top-level sense.
+      expect(first.senses.map((s) => s.text)).not.toContain('Cameră, odaie.');
+    });
+
+    it('attributes every sense to its contributing dictionary', () => {
+      const first = firstOrThrow(casa(), 'entry');
+      expect(first.senses[0]?.sources).toContain("DEX '09");
+    });
+
+    it('records the homonym index', () => {
+      expect(firstOrThrow(casa(), 'entry').homonymIndex).toBe(1);
+    });
+
     it('validates against the entry schema', () => {
-      for (const e of casa({ all: true })) NormalizedEntry.parse(e);
+      for (const e of casa({ all: true })) EntryV2.parse(e);
     });
   });
 

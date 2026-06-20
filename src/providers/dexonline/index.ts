@@ -1,9 +1,7 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
-import { liftEntry } from '../../schema/adapters/lift.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
 import { parseDexonline } from './parse.js';
-import { sourceAuthority } from './rank.js';
 import { buildDexonlineJsonUrl } from './url.js';
 
 export class DexonlineProvider extends BaseProvider {
@@ -35,12 +33,9 @@ export class DexonlineProvider extends BaseProvider {
     return { accept: 'application/json' };
   }
 
+  // Builds EntryV2 directly: DEXonline's ◊ locutions and ♦ sub-senses are real
+  // structure that must not be flattened on the way in.
   parse(body: string, word: string) {
-    // Authority is per contributing dictionary, not per provider: one lookup
-    // mixes DEX '09 (95) with Șăineanu 1929 (12).
-    return parseDexonline(body, word).map((entry) => {
-      const sourceName = entry.source.workTitle ?? '';
-      return liftEntry(entry, { authority: sourceAuthority(sourceName), sourceName });
-    });
+    return parseDexonline(body, word);
   }
 }

@@ -182,11 +182,17 @@ export function readHeadword(raw: string): Headword | undefined {
   return out;
 }
 
+/** A "◊" (single star) or "♦" (double star) item hanging off a sense. */
+export interface RepSubItem {
+  /** '*' renders as ◊ (locution/expression); '**' as ♦ (sub-sense). */
+  marker: '*' | '**';
+  text: string;
+}
+
 export interface RepSense {
   number: number;
   text: string;
-  /** "◊" locutions and "♦" sub-senses attached to this sense. */
-  subItems: string[];
+  subItems: RepSubItem[];
 }
 
 /**
@@ -227,14 +233,10 @@ export function splitSenses(rendered: RenderedRep): RepSense[] {
     const body = rendered.text.slice(cur.end, next?.start ?? rendered.text.length).trim();
     if (!body) continue;
 
-    // "*" and "**" introduce locutions/expressions and sub-senses; keep them
-    // out of the sense text but retain them.
-    const parts = body.split(/\s*\*{1,2}\s*/);
-    const head = (parts[0] ?? '').trim();
-    const subItems = parts
-      .slice(1)
-      .map((p) => p.trim())
-      .filter(Boolean);
+    // "*" and "**" introduce locutions/expressions and sub-senses. Keep them
+    // out of the sense text but retain which marker introduced each, so a
+    // locution is not mistaken for a sub-sense downstream.
+    const { head, subItems } = splitSubItems(body);
 
     out.push({
       number: cur.number,
@@ -243,6 +245,31 @@ export function splitSenses(rendered: RenderedRep): RepSense[] {
     });
   }
   return out;
+}
+
+/** Split a sense body into its head text and marker-tagged sub-items. */
+function splitSubItems(body: string): { head: string; subItems: RepSubItem[] } {
+  const subItems: RepSubItem[] = [];
+  const marks: Array<{ marker: '*' | '**'; start: number; end: number }> = [];
+
+  for (const m of body.matchAll(/\s*(\*{1,2})\s*/g)) {
+    if (m.index === undefined || !m[1]) continue;
+    marks.push({
+      marker: m[1] === '**' ? '**' : '*',
+      start: m.index,
+      end: m.index + m[0].length,
+    });
+  }
+
+  const head = (marks[0] ? body.slice(0, marks[0].start) : body).trim();
+  for (let i = 0; i < marks.length; i++) {
+    const cur = marks[i];
+    const next = marks[i + 1];
+    if (!cur) continue;
+    const text = body.slice(cur.end, next?.start ?? body.length).trim();
+    if (text) subItems.push({ marker: cur.marker, text });
+  }
+  return { head, subItems };
 }
 
 /**

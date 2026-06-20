@@ -19,7 +19,9 @@ import {
   splitSenses,
 } from '../../extract/internal-rep.js';
 import { deterministicId } from '../../lib/id.js';
-import type { Example, NormalizedEntry, Sense } from '../../schema/entry.js';
+import { senseNode } from '../../schema/entry-v2.js';
+import type { SenseNode } from '../../schema/entry-v2.js';
+import type { EntryV2 } from '../../schema/entry-v2.js';
 import { byAuthority, dropDuplicates, isOrthographicSource, sourceAuthority } from './rank.js';
 
 export interface DexonlineDefinition {
@@ -66,7 +68,7 @@ export function parseDexonline(
   body: string,
   word: string,
   options: ParseDexonlineOptions = {},
-): NormalizedEntry[] {
+): EntryV2[] {
   if (!body.trim()) return [];
 
   let payload: DexonlineJson;
@@ -117,7 +119,7 @@ interface BuiltEntry {
   sourceName: string;
   authority: number;
   senseTexts: string[];
-  entry: NormalizedEntry;
+  entry: EntryV2;
 }
 
 function buildEntry(
@@ -144,25 +146,34 @@ function buildEntry(
   const preamble = rendered.text.slice(0, firstSenseOffset(rendered, repSenses));
   const grammar = readGrammar(preamble || rendered.text.slice(0, 120));
 
-  const senses: Sense[] = repSenses.map((s) => {
-    const examples: Example[] = s.subItems
-      .map((text) => ({ text }))
-      .filter((e) => e.text.length > 0);
-    return {
+  // "◊" items are locutions/expressions and "♦" items are sub-senses; keeping
+  // them as typed children means /v1 can still flatten them into examples while
+  // /v2 preserves what they actually are.
+  const senses: SenseNode[] = repSenses.map((s) =>
+    senseNode(s.text, {
       number: s.number,
-      text: s.text,
       register: readGrammar(s.text).register,
-      examples,
-      synonyms: [],
-      antonyms: [],
-    };
-  });
+      sources: [sourceName],
+      children: s.subItems.map((item) =>
+        senseNode(item.text, {
+          type:
+            item.marker === '**'
+              ? 'sub-meaning'
+              : /\bexpr\b/i.test(item.text)
+                ? 'expression'
+                : 'locution',
+          register: readGrammar(item.text).register,
+          sources: [sourceName],
+        }),
+      ),
+    }),
+  );
 
   if (senses.length === 0) return undefined;
 
   const etymology = readEtymology(rendered);
 
-  const entry: NormalizedEntry = {
+  const entry: EntryV2 = {
     id: deterministicId(['dexonline', lower, definition.id ?? idx]),
     headword: lower,
     displayHeadword: display,
@@ -170,10 +181,15 @@ function buildEntry(
     inflections: [],
     pronunciations: headword?.stressed ? [{ stressMark: headword.stressed }] : [],
     senses,
+    derived: [],
+    compounds: [],
+    ...(headword?.homonymIndex !== undefined ? { homonymIndex: headword.homonymIndex } : {}),
     source: {
       providerId: 'dexonline',
       providerName: 'DEXonline',
+      sourceName,
       workTitle: sourceName,
+      authority,
       url: `https://dexonline.ro/definitie/${encodeURIComponent(word)}`,
       license: 'GPL-2.0-or-later',
       attribution: `DEXonline.ro — ${sourceName}`,

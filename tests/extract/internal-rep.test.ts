@@ -118,3 +118,18 @@ describe('readEtymology', () => {
     expect(readEtymology(renderInternalRep('Simple text.'))).toBeUndefined();
   });
 });
+
+describe('sub-item markers', () => {
+  it('distinguishes ◊ locutions from ♦ sub-senses', () => {
+    const senses = splitSenses(renderInternalRep(DEX09));
+    const markers = senses[0]?.subItems.map((s) => s.marker);
+    // "* Loc. adj. …", "* Expr. …" and "** (Reg.) Cameră, odaie."
+    expect(markers).toContain('*');
+    expect(markers).toContain('**');
+  });
+
+  it('keeps the sub-sense text with its marker', () => {
+    const sub = splitSenses(renderInternalRep(DEX09))[0]?.subItems.find((s) => s.marker === '**');
+    expect(sub?.text).toMatch(/Cameră, odaie/);
+  });
+});
