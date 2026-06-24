@@ -1,3 +1,4 @@
+import { irregularForms } from './irregular.js';
 export type FormKey =
   | 'inf'
   | 'inf.long'
@@ -15,25 +16,45 @@ export interface VerbConjugation {
   forms: Partial<Record<FormKey, string>>;
 }
 
+/**
+ * Strip the infinitive particle: Romanian cites verbs as "a merge", and users
+ * type it that way. Treating it as part of the stem produced "a fesc"/"a fit".
+ */
+export function stripInfinitiveParticle(input: string): string {
+  return input.replace(/^\s*a\s+/i, '').trim();
+}
+
 export function conjugateRomanianVerb(infinitive: string): VerbConjugation | undefined {
-  const w = infinitive.normalize('NFC').toLocaleLowerCase('ro-RO').trim();
+  const w = stripInfinitiveParticle(infinitive.normalize('NFC').toLocaleLowerCase('ro-RO').trim());
   if (!w || w.length < 2) return undefined;
 
-  if (w.endsWith('a')) {
-    return classI(w);
+  // The irregular table wins: no suffix rule derives "făcut" from "face" or
+  // "sunt" from "fi".
+  const irregular = irregularForms(w);
+  if (irregular) {
+    const base = regularFor(w);
+    // Fill any cell the table leaves out from the regular pattern for its class.
+    return base
+      ? { classRoman: irregular.classRoman, forms: { ...base.forms, ...irregular.forms } }
+      : irregular;
   }
-  if (w.endsWith('ea')) {
-    return classII(w);
-  }
-  if (w.endsWith('e')) {
-    return classIII(w);
-  }
-  if (w.endsWith('i')) {
-    return classIVi(w);
-  }
-  if (w.endsWith('î')) {
-    return classIVa(w);
-  }
+
+  return regularFor(w);
+}
+
+/**
+ * Apply the regular pattern for the verb's conjugation class.
+ *
+ * Suffixes are tested longest-first. Testing `endsWith('a')` before
+ * `endsWith('ea')` put every class II verb (vedea, putea, avea, plăcea) in
+ * class I and conjugated it with the wrong endings.
+ */
+function regularFor(w: string): VerbConjugation | undefined {
+  if (w.endsWith('ea')) return classII(w);
+  if (w.endsWith('a')) return classI(w);
+  if (w.endsWith('e')) return classIII(w);
+  if (w.endsWith('i')) return classIVi(w);
+  if (w.endsWith('î')) return classIVa(w);
   return undefined;
 }
 
