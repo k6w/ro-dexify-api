@@ -36,6 +36,11 @@ export class DexonlineProvider extends BaseProvider {
   // Builds EntryV2 directly: DEXonline's ◊ locutions and ♦ sub-senses are real
   // structure that must not be flattened on the way in.
   parse(body: string, word: string) {
-    return parseDexonline(body, word);
+    // Parse and cache everything the lookup matched. Ranking, deduplication,
+    // the dictionary filter and the cap are view concerns applied after the
+    // cache -- see src/server/view.ts -- because the cache is keyed on
+    // (provider, headword) and would otherwise serve a filtered result to an
+    // unfiltered request.
+    return parseDexonline(body, word, { all: true, includeOrthographic: true });
   }
 }

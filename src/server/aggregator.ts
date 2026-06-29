@@ -5,12 +5,15 @@ import type { Provider } from '../providers/types.js';
 import type { EntryV2 } from '../schema/entry-v2.js';
 import type { Capability, ProviderId } from '../schema/entry.js';
 import { ApiException, type ErrorCode, type ProviderError } from '../schema/errors.js';
+import { type ViewOptions, applyView } from './view.js';
 
 export interface AggregateOpts {
   word: string;
   sources?: ReadonlyArray<ProviderId>;
   refresh?: boolean;
   include?: ReadonlyArray<Capability>;
+  /** Ranking/filtering applied after the cache; see ./view.ts. */
+  view?: ViewOptions;
   logger: Logger;
 }
 
@@ -41,7 +44,7 @@ export async function aggregate(opts: AggregateOpts): Promise<AggregateResult> {
     const r = settled[i];
     if (!r) return;
     if (r.status === 'fulfilled') {
-      for (const e of r.value) {
+      for (const e of applyView(r.value, opts.view ?? {})) {
         entries.push(e);
         if (e.source.cacheHit) hits++;
         else misses++;
