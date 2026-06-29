@@ -42,10 +42,36 @@ export const RefreshQuery = z
   .optional()
   .transform((v) => v === 'true' || v === '1');
 
+/** Comma-separated dictionary names, e.g. ?dict=DEX '09,MDA2 */
+const DictQuery = z
+  .string()
+  .optional()
+  .transform((v) =>
+    v
+      ? v
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined,
+  );
+
+const BooleanQuery = z
+  .string()
+  .optional()
+  .transform((v) => (v === undefined ? undefined : v === '' || v === 'true' || v === '1'));
+
 export const WordLookupQuery = z.object({
   sources: SourcesQuery,
   refresh: RefreshQuery,
   include: IncludeQuery,
+  /** Return every entry, skipping ranking, deduplication and the cap. */
+  all: BooleanQuery,
+  /** Restrict to these contributing dictionaries. */
+  dict: DictQuery,
+  /** Cap on entries per provider. */
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  /** Include DOOM/Ortografic entries, which carry no definitions. */
+  orthographic: BooleanQuery,
 });
 
 export const SearchQuery = z.object({

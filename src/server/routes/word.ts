@@ -5,6 +5,7 @@ import { HeadwordParam, WordLookupQuery } from '../../schema/api.js';
 import { ProviderId } from '../../schema/entry.js';
 import { ApiException } from '../../schema/errors.js';
 import { aggregate, aggregateOne } from '../aggregator.js';
+import type { ViewOptions } from '../view.js';
 
 /**
  * `/v1` flattens the v2 sense tree through the adapter so its response shape is
@@ -32,13 +33,19 @@ function wire(
       sources: c.req.query('sources'),
       refresh: c.req.query('refresh'),
       include: c.req.query('include'),
+      all: c.req.query('all'),
+      dict: c.req.query('dict'),
+      limit: c.req.query('limit'),
+      orthographic: c.req.query('orthographic'),
     });
+    const view = toView(queryParsed);
     const logger = c.get('logger');
     const result = await aggregate({
       word,
       ...(queryParsed.sources ? { sources: queryParsed.sources } : {}),
       ...(queryParsed.refresh ? { refresh: queryParsed.refresh } : {}),
       ...(queryParsed.include ? { include: queryParsed.include } : {}),
+      view,
       logger,
     });
     return c.json({
@@ -60,12 +67,18 @@ function wire(
     const queryParsed = WordLookupQuery.parse({
       refresh: c.req.query('refresh'),
       include: c.req.query('include'),
+      all: c.req.query('all'),
+      dict: c.req.query('dict'),
+      limit: c.req.query('limit'),
+      orthographic: c.req.query('orthographic'),
     });
+    const view = toView(queryParsed);
     const logger = c.get('logger');
     const result = await aggregateOne(sourceParsed.data, {
       word,
       ...(queryParsed.refresh ? { refresh: queryParsed.refresh } : {}),
       ...(queryParsed.include ? { include: queryParsed.include } : {}),
+      view,
       logger,
     });
     return c.json({
@@ -75,4 +88,19 @@ function wire(
       errors: result.errors,
     });
   });
+}
+
+/** Map the parsed query onto the post-cache view options. */
+function toView(q: {
+  all?: boolean | undefined;
+  dict?: string[] | undefined;
+  limit?: number | undefined;
+  orthographic?: boolean | undefined;
+}): ViewOptions {
+  return {
+    ...(q.all !== undefined ? { all: q.all } : {}),
+    ...(q.dict !== undefined ? { dictionaries: q.dict } : {}),
+    ...(q.limit !== undefined ? { limit: q.limit } : {}),
+    ...(q.orthographic !== undefined ? { includeOrthographic: q.orthographic } : {}),
+  };
 }
