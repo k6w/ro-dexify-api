@@ -72,6 +72,8 @@ export const WordLookupQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).optional(),
   /** Include DOOM/Ortografic entries, which carry no definitions. */
   orthographic: BooleanQuery,
+  /** Merge entries for the same word across providers. */
+  merge: BooleanQuery,
 });
 
 export const SearchQuery = z.object({

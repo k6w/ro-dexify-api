@@ -5,6 +5,7 @@ import { HeadwordParam, WordLookupQuery } from '../../schema/api.js';
 import { ProviderId } from '../../schema/entry.js';
 import { ApiException } from '../../schema/errors.js';
 import { aggregate, aggregateOne } from '../aggregator.js';
+import { mergeEntries } from '../merge.js';
 import type { ViewOptions } from '../view.js';
 
 /**
@@ -37,6 +38,7 @@ function wire(
       dict: c.req.query('dict'),
       limit: c.req.query('limit'),
       orthographic: c.req.query('orthographic'),
+      merge: c.req.query('merge'),
     });
     const view = toView(queryParsed);
     const logger = c.get('logger');
@@ -50,7 +52,7 @@ function wire(
     });
     return c.json({
       headword: word,
-      entries: shape(result.entries),
+      entries: shape(queryParsed.merge ? mergeEntries(result.entries) : result.entries),
       cache: result.cache,
       errors: result.errors,
     });
@@ -71,6 +73,7 @@ function wire(
       dict: c.req.query('dict'),
       limit: c.req.query('limit'),
       orthographic: c.req.query('orthographic'),
+      merge: c.req.query('merge'),
     });
     const view = toView(queryParsed);
     const logger = c.get('logger');
@@ -83,7 +86,7 @@ function wire(
     });
     return c.json({
       headword: word,
-      entries: shape(result.entries),
+      entries: shape(queryParsed.merge ? mergeEntries(result.entries) : result.entries),
       cache: result.cache,
       errors: result.errors,
     });
