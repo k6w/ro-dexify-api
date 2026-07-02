@@ -1,9 +1,13 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Nightly upstream drift check; see the `drift` job below.
+    - cron: '17 4 * * *'
 
 permissions:
   contents: read
@@ -38,3 +42,20 @@ jobs:
           name: coverage
           path: coverage/
           retention-days: 14
+
+  # Runs the parsers against the live sites. Kept out of the PR gate: it makes
+  # real network requests and a third-party outage must not block a merge.
+  drift:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:live
