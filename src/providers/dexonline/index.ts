@@ -1,8 +1,10 @@
 import { TTL_SECONDS } from '../../cache/ttl.js';
+import type { EntryV2 } from '../../schema/entry-v2.js';
 import { BaseProvider } from '../base.js';
 import type { ProviderMeta } from '../types.js';
+import { enrichWithPage } from './enrich.js';
 import { parseDexonline } from './parse.js';
-import { buildDexonlineJsonUrl } from './url.js';
+import { buildDexonlineJsonUrl, buildDexonlineUrl } from './url.js';
 
 export class DexonlineProvider extends BaseProvider {
   readonly meta: ProviderMeta = {
@@ -42,5 +44,18 @@ export class DexonlineProvider extends BaseProvider {
     // (provider, headword) and would otherwise serve a filtered result to an
     // unfiltered request.
     return parseDexonline(body, word, { all: true, includeOrthographic: true });
+  }
+
+  /**
+   * The rendered page, fetched after the JSON. It is the only source of typed
+   * relations, example citations and the full declension table. Costs a second
+   * request 2 s later per robots Crawl-delay; both land in one cache entry.
+   */
+  protected override secondaryUrl(word: string): string {
+    return buildDexonlineUrl(word);
+  }
+
+  protected override mergeSecondary(entries: EntryV2[], body: string): EntryV2[] {
+    return enrichWithPage(entries, body);
   }
 }

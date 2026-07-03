@@ -20,6 +20,23 @@ export abstract class BaseProvider implements Provider {
     return {};
   }
 
+  /**
+   * A second document to fetch for the same word, or undefined for none.
+   *
+   * DEXonline needs this: the JSON API carries definitions while relations,
+   * citations and declension tables live on the rendered page. The second
+   * request goes through the same rate limiter and breaker, and both results
+   * are stored as one cache entry, so a cache hit still serves everything.
+   */
+  protected secondaryUrl(_word: string): string | undefined {
+    return undefined;
+  }
+
+  /** Fold the secondary document into the entries parsed from the primary. */
+  protected mergeSecondary(entries: EntryV2[], _body: string, _word: string): EntryV2[] {
+    return entries;
+  }
+
   async lookup(word: string, opts: LookupOpts): Promise<EntryV2[]> {
     const config = loadConfig();
     const headword = word;
@@ -102,7 +119,41 @@ export abstract class BaseProvider implements Provider {
       );
     }
 
-    const parsed = this.parse(fetched.body, headword);
+    let parsed = this.parse(fetched.body, headword);
+
+    // A secondary document enriches the primary result. It must never be able
+    // to fail the lookup: a redesign or an outage on that URL degrades to the
+    // primary entries rather than returning nothing.
+    const secondary = this.secondaryUrl(headword);
+    if (secondary && parsed.length > 0) {
+      try {
+        const secondHost = new URL(secondary).host;
+        const extra = await runOnHost(secondHost, meta.rateLimit, () =>
+          breaker.execute(() =>
+            fetchText({
+              url: secondary,
+              headers,
+              signal: opts.signal,
+              logger: opts.logger,
+            }),
+          ),
+        );
+        if (extra.status < 400) {
+          parsed = this.mergeSecondary(parsed, extra.body, headword);
+        } else {
+          opts.logger.warn(
+            { provider: meta.id, url: secondary, status: extra.status },
+            'secondary_fetch_failed',
+          );
+        }
+      } catch (err) {
+        opts.logger.warn(
+          { provider: meta.id, url: secondary, err: String(err) },
+          'secondary_fetch_error',
+        );
+      }
+    }
+
     const fetchedAtIso = now.toISOString();
     const stamped = parsed.map((entry) =>
       stampNewEntry(entry, {

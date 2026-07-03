@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { enrichWithPage } from '../../src/providers/dexonline/enrich.js';
 import { parseParadigms } from '../../src/providers/dexonline/paradigm.js';
+import { parseDexonline } from '../../src/providers/dexonline/parse.js';
 import { collectRelations, parseMeaningTrees } from '../../src/providers/dexonline/tree.js';
+import { applyView } from '../../src/server/view.js';
 import { firstOrThrow, fixture } from '../helpers.js';
 
 const html = () => fixture('dexonline-html', 'casă');
@@ -104,5 +107,47 @@ describe('parseParadigms', () => {
 
   it('returns [] for an empty document', () => {
     expect(parseParadigms('')).toEqual([]);
+  });
+});
+
+describe('enrichWithPage', () => {
+  const enriched = () => {
+    const base = parseDexonline(fixture('dexonline', 'casă'), 'casă', {
+      all: true,
+      includeOrthographic: true,
+    });
+    return applyView(enrichWithPage(base, html()));
+  };
+
+  it('attaches the full declension the JSON API does not carry', () => {
+    const e = firstOrThrow(enriched(), 'entry');
+    expect(e.paradigm?.modelCode).toBe('F1');
+    expect(e.inflections.map((i) => i.form)).toEqual(
+      expect.arrayContaining(['casă', 'casa', 'case', 'casele', 'casei', 'caselor']),
+    );
+    expect(e.inflections.every((i) => i.origin === 'attested')).toBe(true);
+  });
+
+  it('adds examples with citations without dropping the JSON children', () => {
+    const s1 = firstOrThrow(enriched(), 'entry').senses[0];
+    const types = new Set(s1?.children.map((c) => c.type));
+    // ◊/♦ items come from internalRep, examples from the page.
+    expect(types).toContain('locution');
+    expect(types).toContain('sub-meaning');
+    expect(types).toContain('example');
+    const cited = s1?.children.filter((c) => c.citation) ?? [];
+    expect(cited.length).toBeGreaterThan(0);
+    expect(cited[0]?.citation).toBe('STANCU, D. 19.');
+  });
+
+  it('adds relations the JSON API does not carry', () => {
+    const rel = firstOrThrow(enriched(), 'entry').senses[0]?.relations;
+    expect(rel?.diminutives).toEqual(expect.arrayContaining(['căscioară', 'căsuță']));
+    expect(rel?.synonyms).toEqual(expect.arrayContaining(['cameră', 'odaie']));
+  });
+
+  it('is a no-op when the page is empty', () => {
+    const base = parseDexonline(fixture('dexonline', 'casă'), 'casă');
+    expect(enrichWithPage(base, '')).toEqual(base);
   });
 });
