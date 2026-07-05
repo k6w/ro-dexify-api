@@ -39,6 +39,24 @@ function buildOpenApi(): unknown {
             { name: 'sources', in: 'query', schema: { type: 'string' } },
             { name: 'refresh', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } },
             { name: 'include', in: 'query', schema: { type: 'string' } },
+            ...viewParams(),
+          ],
+          responses: ok(),
+        },
+      },
+      '/v2/word/{word}': {
+        get: {
+          summary: 'Aggregate entries, full v2 shape (recursive sense tree)',
+          description:
+            'Same lookup as /v1 but returns the entry as the providers built it: ' +
+            'typed sense tree, per-sense relations and sources, paradigm, homonymIndex, ' +
+            'inflection origin/confidence and source authority. /v1 is this, flattened.',
+          parameters: [
+            wordParam(),
+            { name: 'sources', in: 'query', schema: { type: 'string' } },
+            { name: 'refresh', in: 'query', schema: { type: 'string', enum: ['true', 'false'] } },
+            { name: 'include', in: 'query', schema: { type: 'string' } },
+            ...viewParams(),
           ],
           responses: ok(),
         },
@@ -46,15 +64,14 @@ function buildOpenApi(): unknown {
       '/v1/word/{word}/{source}': {
         get: {
           summary: 'Single-provider lookup',
-          parameters: [
-            wordParam(),
-            {
-              name: 'source',
-              in: 'path',
-              required: true,
-              schema: { type: 'string', enum: providers },
-            },
-          ],
+          parameters: [wordParam(), sourceParam(providers), ...viewParams()],
+          responses: ok(),
+        },
+      },
+      '/v2/word/{word}/{source}': {
+        get: {
+          summary: 'Single-provider lookup, full v2 shape',
+          parameters: [wordParam(), sourceParam(providers), ...viewParams()],
           responses: ok(),
         },
       },
@@ -86,6 +103,54 @@ function buildOpenApi(): unknown {
 
 function wordParam(name = 'word') {
   return { name, in: 'path', required: true, schema: { type: 'string' } };
+}
+
+function sourceParam(providers: readonly string[]) {
+  return {
+    name: 'source',
+    in: 'path',
+    required: true,
+    schema: { type: 'string', enum: providers },
+  };
+}
+
+/**
+ * Post-cache view options, shared by every /word route on both versions.
+ * These filter the response; they never change what is fetched or cached.
+ */
+function viewParams() {
+  return [
+    {
+      name: 'all',
+      in: 'query',
+      description: 'Skip ranking, deduplication and the per-provider cap.',
+      schema: { type: 'boolean' },
+    },
+    {
+      name: 'dict',
+      in: 'query',
+      description: 'Comma-separated contributing dictionaries, e.g. "DEX \'09,MDA2".',
+      schema: { type: 'string' },
+    },
+    {
+      name: 'limit',
+      in: 'query',
+      description: 'Cap on entries per provider.',
+      schema: { type: 'integer', minimum: 1, maximum: 200, default: 8 },
+    },
+    {
+      name: 'orthographic',
+      in: 'query',
+      description: 'Include DOOM/Ortografic entries, which carry inflection but no definitions.',
+      schema: { type: 'boolean' },
+    },
+    {
+      name: 'merge',
+      in: 'query',
+      description: 'Combine providers describing the same word into one entry.',
+      schema: { type: 'boolean' },
+    },
+  ];
 }
 
 function ok() {
