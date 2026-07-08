@@ -60,25 +60,11 @@ const SOURCES: Record<string, SourceMeta> = {
 const DEFAULT_AUTHORITY = 25;
 
 /**
- * Sources whose DEXonline entries carry orthography and inflection but no
- * definitions at all -- e.g. DOOM 3's entry for "casă" is the bare
- * "s. f., g.-d. art. casei; pl. case (dar: …)".
- *
- * They rank highest by authority, so left in they push every actual definition
- * off the front of the response. The dedicated `doom` provider covers the same
- * data from the source site, with stress and syllabification this copy lacks.
+ * Re-exported from the response view, which is where the decision now lives:
+ * the filter is applied after the cache, not during parsing. Defined in one
+ * place so the two cannot drift apart.
  */
-export const ORTHOGRAPHIC_SOURCES: ReadonlySet<string> = new Set([
-  'DOOM 3',
-  'DOOM 2',
-  'DOOM',
-  'Ortografic',
-  'MDO',
-]);
-
-export function isOrthographicSource(sourceName: string): boolean {
-  return ORTHOGRAPHIC_SOURCES.has(sourceName);
-}
+export { isOrthographicSource } from '../../server/view.js';
 
 export function sourceAuthority(sourceName: string): number {
   return SOURCES[sourceName]?.authority ?? DEFAULT_AUTHORITY;

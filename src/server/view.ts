@@ -33,13 +33,18 @@ export const DEFAULT_VIEW_LIMIT = 8;
  * real definition off the front. The dedicated `doom` provider covers the same
  * data from the source site, with stress and syllabification this copy lacks.
  */
-const ORTHOGRAPHIC_SOURCE_NAMES: ReadonlySet<string> = new Set([
+export const ORTHOGRAPHIC_SOURCE_NAMES: ReadonlySet<string> = new Set([
   'DOOM 3',
   'DOOM 2',
   'DOOM',
   'Ortografic',
   'MDO',
 ]);
+
+/** True when a dictionary publishes inflection but no definition text. */
+export function isOrthographicSource(sourceName: string): boolean {
+  return ORTHOGRAPHIC_SOURCE_NAMES.has(sourceName);
+}
 
 function senseKey(text: string): string {
   return text

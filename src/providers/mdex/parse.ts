@@ -49,7 +49,7 @@ export function parseMdex(body: string, word: string): NormalizedEntry[] {
     if (!text || text.length < 8) continue;
 
     // Everything after the headword is the definition body.
-    const bodyText = collapse(text.slice(display.length >= 2 ? 0 : 0)).replace(
+    const bodyText = text.replace(
       new RegExp(`^${escapeRegex(strong?.textContent?.trim() ?? '')}\\s*`),
       '',
     );
