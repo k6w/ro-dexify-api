@@ -13,7 +13,7 @@ All parsers are tested against **recorded responses from the live sites** (`test
 | `mdex` | Definitions (mobile mirror) — **disabled by default**, mirrors the same corpus as `dexonline` | https://m.dex.ro |
 | `wiktionary` | Definitions, etymology, IPA, declension/conjugation | https://ro.wiktionary.org/w/api.php |
 | `forvo` | Audio pronunciations | https://api.forvo.com (key required) |
-| `dlr` | Academic definitions — **env-gated** (`ENABLE_DLR`) | https://dlr1.solirom.ro |
+| `dlr` | Academic definitions — **unavailable**: the upstream endpoint returns 404 and the site is now browser-only, so the provider is disabled unconditionally | https://dlr1.solirom.ro |
 | `conjugare` | Verb conjugation (4-class rule engine; full-mode also seeds DEX `InflectedForm`) | local + DEX dump |
 | `pluralro` | Noun pluralization | local rules |
 
@@ -53,6 +53,15 @@ GET  /v1/healthz
 GET  /openapi.json   /docs
 ```
 
+### DEXonline fetches twice
+
+A DEXonline cache miss makes two requests: the JSON API for definitions, then
+the rendered page 2 s later (per `Crawl-delay`) for typed relations, examples
+with bibliographic citations, and the full declension table. Cold lookups take
+~2.5 s as a result; both documents are stored in one cache entry, so cache hits
+serve everything at no extra cost. A failure on the second request degrades to
+the JSON result rather than failing the lookup.
+
 ### `/v1` vs `/v2`
 
 `/v1` is unchanged and stays that way: senses are a flat list. `/v2` serves the
@@ -60,7 +69,9 @@ entry as the providers actually built it — a recursive sense tree with typed
 nodes (`meaning`, `sub-meaning`, `example`, `expression`, `locution`), per-sense
 `relations` and `sources`, `paradigm`, `homonymIndex`, inflection
 `origin`/`confidence`, and `source.authority`/`source.sourceName`.
-`/v1` is produced from `/v2` by a flattening adapter.
+`/v1` is produced from `/v2` by a flattening adapter. Only `/word` is
+versioned; `search`, `conjugate`, `pluralize`, `sources` and `healthz` are
+shared and live under `/v1`.
 
 ### Query parameters (`/word` on both versions)
 
@@ -158,6 +169,7 @@ pnpm seed               re-run bootstrap without `pnpm install`
 pnpm fixtures:refresh   re-fetch test fixtures from live sources
 pnpm test               vitest
 pnpm test:ci            vitest + a guard that fails if the suite did not run
+pnpm check:live         run the parsers against the live sites (drift check)
 pnpm typecheck          tsc --noEmit
 pnpm lint               biome check
 ```
