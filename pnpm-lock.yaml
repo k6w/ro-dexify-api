@@ -53,6 +53,9 @@ importers:
       sanitize-html:
         specifier: ^2.13.1
         version: 2.17.3
+      text2wav:
+        specifier: ^0.0.14
+        version: 0.0.14
       ulid:
         specifier: ^2.3.0
         version: 2.4.0
@@ -1449,6 +1452,11 @@ packages:
     resolution: {integrity: sha512-u9E6A+ZDYdp7a4WnarkXPZOx8Ilz46+kby6p1yZ8zsGTz9gYa6FIS7lj2oezzNKmtdyyJNNmmXDppga5GB7kSw==}
     engines: {node: '>=18'}
 
+  text2wav@0.0.14:
+    resolution: {integrity: sha512-zmkv8UI4U+OWGQcosNcISAWFxUQglcd+VmsaiQkG9+JTU14/kIKXH6BHgAXrYD5+gfGubp3HWsTLiNDaD23X+g==}
+    engines: {node: '>=8.9.0'}
+    hasBin: true
+
   thread-stream@3.1.0:
     resolution: {integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==}
 
@@ -2817,6 +2825,8 @@ snapshots:
       '@istanbuljs/schema': 0.1.6
       glob: 10.5.0
       minimatch: 10.2.5
+
+  text2wav@0.0.14: {}
 
   thread-stream@3.1.0:
     dependencies:

@@ -25,7 +25,16 @@
     "format": "biome format --write src tests scripts",
     "check:live": "tsx scripts/check-live.ts"
   },
-  "keywords": ["romanian", "dictionary", "dexonline", "doom", "wiktionary", "forvo", "dlr", "api"],
+  "keywords": [
+    "romanian",
+    "dictionary",
+    "dexonline",
+    "doom",
+    "wiktionary",
+    "forvo",
+    "dlr",
+    "api"
+  ],
   "license": "MIT",
   "dependencies": {
     "@hono/node-server": "^1.13.7",
@@ -43,6 +52,7 @@
     "plural-ro": "^1.0.0",
     "robots-parser": "^3.0.1",
     "sanitize-html": "^2.13.1",
+    "text2wav": "^0.0.14",
     "ulid": "^2.3.0",
     "undici": "^7.1.1",
     "wtf_wikipedia": "^10.4.0",
