@@ -5,6 +5,7 @@ import type { Provider } from '../providers/types.js';
 import type { EntryV2 } from '../schema/entry-v2.js';
 import type { Capability, ProviderId } from '../schema/entry.js';
 import { ApiException, type ErrorCode, type ProviderError } from '../schema/errors.js';
+import { withDerivedPronunciations } from './phonetics-enrich.js';
 import { type ViewOptions, applyView } from './view.js';
 
 export interface AggregateOpts {
@@ -44,7 +45,9 @@ export async function aggregate(opts: AggregateOpts): Promise<AggregateResult> {
     const r = settled[i];
     if (!r) return;
     if (r.status === 'fulfilled') {
-      for (const e of applyView(r.value, opts.view ?? {})) {
+      // Fill in IPA and syllabification for entries no source transcribed.
+      // Applied after the view so it only runs on entries actually returned.
+      for (const e of withDerivedPronunciations(applyView(r.value, opts.view ?? {}))) {
         entries.push(e);
         if (e.source.cacheHit) hits++;
         else misses++;

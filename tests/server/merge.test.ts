@@ -114,6 +114,35 @@ describe('mergeEntries', () => {
     expect(mergeEntries([DEX, more])[0]?.senses.map((s) => s.number)).toEqual([1, 2]);
   });
 
+  it('collapses the same transcription contributed by several providers', () => {
+    // DOOM writes the stress mark "cásă" and DEXonline "CÁSĂ": different
+    // objects, identical sound. Keying the dedupe on the whole object made the
+    // merged entry repeat /ˈka.sə/ once per provider.
+    const a = entry({
+      providerId: 'doom',
+      authority: 98,
+      pronunciations: [{ ipa: '/ˈka.sə/', stressMark: 'cásă' }],
+    });
+    const b = entry({
+      providerId: 'dexonline',
+      authority: 95,
+      homonymIndex: 1,
+      pronunciations: [{ ipa: '/ˈka.sə/', stressMark: 'CÁSĂ' }],
+    });
+    const merged = mergeEntries([a, b])[0];
+    expect(merged?.pronunciations.filter((p) => p.ipa === '/ˈka.sə/')).toHaveLength(1);
+  });
+
+  it('keeps genuinely different transcriptions', () => {
+    const a = entry({ providerId: 'doom', authority: 98, pronunciations: [{ ipa: '/ˈka.sə/' }] });
+    const b = entry({
+      providerId: 'wiktionary',
+      authority: 65,
+      pronunciations: [{ ipa: '/ˈka.zə/' }],
+    });
+    expect(mergeEntries([a, b])[0]?.pronunciations).toHaveLength(2);
+  });
+
   it('leaves a single entry untouched apart from contributors', () => {
     const [only] = mergeEntries([DEX]);
     expect(only?.contributors).toEqual(['dexonline']);

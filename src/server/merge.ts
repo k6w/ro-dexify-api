@@ -76,10 +76,26 @@ function dedupeInflections(items: readonly InflectionV2[]): InflectionV2[] {
 function dedupePronunciations(items: readonly PronunciationV2[]): PronunciationV2[] {
   const seen = new Map<string, PronunciationV2>();
   for (const item of items) {
-    const key = JSON.stringify([item.ipa, item.stressMark, item.syllabification, item.audioUrl]);
-    if (!seen.has(key)) seen.set(key, item);
+    // Key on the transcription itself. Keying on the whole object made the same
+    // IPA appear once per contributing provider, because DOOM writes the stress
+    // mark "cásă" and DEXonline "CÁSĂ" — different objects, identical sound.
+    const key = item.ipa ?? item.audioUrl ?? item.stressMark ?? JSON.stringify(item);
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, item);
+      continue;
+    }
+    // Keep the richest version: later providers may add syllabification or
+    // audio the first one lacked.
+    seen.set(key, { ...item, ...existing, ...stripUndefined(item) });
   }
   return [...seen.values()];
+}
+
+function stripUndefined(p: PronunciationV2): PronunciationV2 {
+  return Object.fromEntries(
+    Object.entries(p).filter(([, v]) => v !== undefined),
+  ) as PronunciationV2;
 }
 
 function senseKey(text: string): string {
