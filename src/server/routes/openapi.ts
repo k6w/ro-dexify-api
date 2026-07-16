@@ -75,6 +75,56 @@ function buildOpenApi(): unknown {
           responses: ok(),
         },
       },
+      '/v1/tts/{word}': {
+        get: {
+          summary: 'Pronunciation audio',
+          description:
+            'Returns a human recording from Wikimedia Commons / Lingua Libre when one ' +
+            'exists, and espeak-ng synthesis driven by the derived IPA otherwise. ' +
+            'Licence and attribution travel with the audio in X-Audio-* headers ' +
+            '(percent-encoded, since HTTP headers are ASCII) and verbatim in ?meta.',
+          parameters: [
+            wordParam(),
+            {
+              name: 'meta',
+              in: 'query',
+              description: 'Return JSON describing the audio instead of the bytes.',
+              schema: { type: 'boolean' },
+            },
+            {
+              name: 'engine',
+              in: 'query',
+              description: "Force an engine; 'espeak' skips the Commons lookup.",
+              schema: { type: 'string', enum: ['espeak'] },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Audio bytes, or JSON when ?meta is set',
+              content: {
+                'audio/wav': { schema: { type: 'string', format: 'binary' } },
+                'application/ogg': { schema: { type: 'string', format: 'binary' } },
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      word: { type: 'string' },
+                      engine: { type: 'string', enum: ['commons', 'espeak'] },
+                      mime: { type: 'string' },
+                      license: { type: 'string' },
+                      attribution: { type: 'string' },
+                      sourceUrl: { type: 'string' },
+                      ipa: { type: 'string' },
+                      syllabification: { type: 'string' },
+                      stressOrigin: { type: 'string', enum: ['attested', 'derived'] },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/v1/audio/{word}': {
         get: { summary: 'Forvo audio passthrough', parameters: [wordParam()], responses: ok() },
       },
