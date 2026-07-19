@@ -97,12 +97,36 @@ describe('parseParadigms', () => {
     expect(noun?.inflections.every((i) => i.origin === 'attested')).toBe(true);
   });
 
-  it('keeps verb cells but publishes no verb inflections', () => {
-    // The verb table is a multi-block grid this mapping does not yet read
-    // correctly; the forms are kept, the (unreliable) tags are not published.
-    const verb = paradigms().find((p) => p.posInfo === 'verb');
-    expect(verb?.paradigm.cells.length).toBeGreaterThan(20);
-    expect(verb?.inflections).toEqual([]);
+  it('reads the multi-block verb grid, tense, number and person', () => {
+    // A verb table is several stacked blocks, each with its own header row, and
+    // cells span both directions. Reading rows positionally gave 'casare' the
+    // tag `infinitive` instead of infinitive+long and lost the imperative
+    // header entirely.
+    const verb = paradigms().find((p) => p.paradigm.modelCode === 'VT201');
+    expect(verb?.paradigm.cells.length).toBeGreaterThan(30);
+
+    const tagsFor = (form: string) =>
+      verb?.paradigm.cells.find((c) => c.forms.includes(form))?.tags ?? [];
+    expect(tagsFor('casare')).toEqual(expect.arrayContaining(['infinitive', 'long']));
+    expect(tagsFor('casează')).toEqual(expect.arrayContaining(['imperative', 'singular']));
+    expect(tagsFor('casați')).toEqual(expect.arrayContaining(['imperative', 'plural']));
+    expect(tagsFor('casam')).toEqual(expect.arrayContaining(['imperfect', 'singular']));
+    expect(tagsFor('casasem')).toEqual(expect.arrayContaining(['pluperfect']));
+  });
+
+  it('reads the person written as a Roman numeral', () => {
+    // The persoana column holds "I (eu)", "a II-a (tu)", "a III-a (el, ea)".
+    const verb = paradigms().find((p) => p.paradigm.modelCode === 'VT201');
+    const casez = verb?.paradigm.cells.find(
+      (c) => c.forms.includes('casez') && c.tags.includes('present'),
+    );
+    expect(casez?.tags).toContain('person:1');
+  });
+
+  it('publishes verb inflections now that they are correctly labelled', () => {
+    const verb = paradigms().find((p) => p.paradigm.modelCode === 'VT201');
+    expect(verb?.inflections.length).toBeGreaterThan(20);
+    expect(verb?.inflections.every((i) => i.origin === 'attested')).toBe(true);
   });
 
   it('returns [] for an empty document', () => {

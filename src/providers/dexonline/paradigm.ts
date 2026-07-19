@@ -41,6 +41,7 @@ const LABEL_TAGS: Array<[RegExp, string[]]> = [
   [/\bacuzativ/i, ['accusative']],
   [/\bgenitiv/i, ['genitive']],
   [/\bdativ/i, ['dative']],
+  [/infinitiv\s+lung/i, ['infinitive', 'long']],
   [/\binfinitiv/i, ['infinitive']],
   [/\bgerunziu/i, ['gerund']],
   [/\bparticipiu/i, ['participle']],
@@ -87,7 +88,12 @@ export function tagsFromCellLabel(label: string): string[] {
       break;
     }
   }
-  const person = label.match(/\b(persoana|pers\.)\s*(I{1,3}|[123])\b/i)?.[2];
+  const person =
+    label.match(/\b(?:persoana|pers\.)\s*(?:a\s*)?(I{1,3}|[123])/i)?.[1] ??
+    // The "persoana" column of a verb table holds the numeral on its own,
+    // written "I (eu)", "a II-a (tu)", "a III-a (el, ea)".
+    label.match(/(?:^|\s)a?\s*(I{1,3})(?:-a)?\s*\(/)?.[1] ??
+    label.match(/(?:^|\s)([123])(?:\s|$)/)?.[1];
   if (person) {
     const n = { I: '1', II: '2', III: '3' }[person.toUpperCase()] ?? person;
     out.push(`person:${n}`);
@@ -117,21 +123,10 @@ export function parseParadigms(html: string): LexemeParadigm[] {
     const { cells, inflections } = readMatrix(table);
     if (cells.length === 0) continue;
 
-    // Verb tables are a multi-block grid: several header rows, each governing
-    // the block beneath it, with form cells spanning rows. The single-header
-    // mapping used here reads nominal tables correctly but mislabels verb
-    // cells ("casare" came out as `infinitive` rather than infinitive+long).
-    //
-    // Rather than publish wrong tags, verb paradigms keep their cells -- the
-    // forms themselves are correct and readable -- but contribute no
-    // inflections, so nothing downstream treats a mislabelled cell as fact.
-    const isNominal = /substantiv|adjectiv|articol|pronume|numeral/i.test(posInfo);
-    const usableInflections = isNominal ? inflections : [];
-
     out.push({
       lexeme,
       paradigm: { cells, ...(modelCode ? { modelCode } : {}) },
-      inflections: usableInflections,
+      inflections,
       ...(label ? { label } : {}),
       ...(posInfo ? { posInfo } : {}),
     });
@@ -140,99 +135,136 @@ export function parseParadigms(html: string): LexemeParadigm[] {
 }
 
 /**
- * Read the declension matrix.
+ * Read the paradigm table.
  *
- * The table is a grid, not a list of label/value rows:
+ * It is a real HTML grid with rowspan and colspan, so it is materialised into
+ * an occupancy matrix first. Reading rows positionally is what mislabelled verb
+ * forms: a verb table is several stacked blocks, each with its own header row,
+ * and cells span both directions.
  *
- *   <tr><td colspan=2>substantiv feminin (F1)</td>
- *       <td class="inflection">nearticulat</td><td class="inflection">articulat</td>
- *   <tr><td rowspan=2 class="inflection">nominativ-acuzativ</td>
- *       <td class="inflection">singular</td>
- *       <td class="form">casă</td><td class="form">casa</td>
- *   <tr><td class="inflection">plural</td>
- *       <td class="form">case</td><td class="form">casele</td>
+ *   ROW 0  [model, colspan2 rowspan3] [infinitiv] [infinitiv lung] [participiu]
+ *                                     [gerunziu] [imperativ pers. a II-a, colspan2]
+ *   ROW 1  [(a) casa, rowspan2] [casare, rowspan2] [casat, rowspan2]
+ *          [casând, rowspan2] [singular] [plural]        <- sub-headers, on the right
+ *   ROW 2  [casează] [casați]                            <- fills the spanned columns
+ *   ROW 3  [spacer, colspan8]
+ *   ROW 4  [numărul] [persoana] [prezent] [conjunctiv prezent] ...   <- a new block
  *
- * A cell's tags are its row labels plus the column header above it, so
- * "casele" comes out as plural + articulated. `rowspan` carries a row label
- * down; reading rows independently would lose "nominativ-acuzativ" from every
- * row but the first.
+ * Once the grid exists the labelling rule is simple:
+ *   - a row with no form cells is a header row; its cells set the label of every
+ *     column they cover, replacing whatever the previous block put there
+ *   - in a row that does have form cells, `.inflection` cells to the LEFT of the
+ *     first form are row labels, and those to the right are column sub-headers
+ *   - a form cell's tags are its column label plus its row labels
+ *
+ * Row labels carried by rowspan need no special handling: a spanned cell is
+ * recorded in every position it covers.
  */
+
+interface GridCell {
+  text: string;
+  isForm: boolean;
+  isInflection: boolean;
+  forms: string[];
+  /** True only at the cell's own origin, so spanned copies are not re-read. */
+  origin: boolean;
+}
+
+function buildGrid(table: Element): GridCell[][] {
+  const grid: GridCell[][] = [];
+  const rows = Array.from(table.querySelectorAll('tr'));
+
+  rows.forEach((row, r) => {
+    grid[r] ??= [];
+    let col = 0;
+    for (const td of Array.from(row.querySelectorAll(':scope > td'))) {
+      // Skip past columns already claimed by a rowspan from an earlier row.
+      while (grid[r]?.[col] !== undefined) col++;
+
+      const isForm = td.classList.contains('form');
+      const cell: GridCell = {
+        text: collapse(td.textContent ?? ''),
+        isForm,
+        isInflection: td.classList.contains('inflection'),
+        forms: isForm
+          ? Array.from(td.querySelectorAll('li'))
+              .map((li) => collapse(li.textContent ?? ''))
+              .filter(Boolean)
+          : [],
+        origin: true,
+      };
+
+      const colspan = Math.max(1, Number(td.getAttribute('colspan') ?? '1'));
+      const rowspan = Math.max(1, Number(td.getAttribute('rowspan') ?? '1'));
+      for (let dr = 0; dr < rowspan; dr++) {
+        for (let dc = 0; dc < colspan; dc++) {
+          const rr = r + dr;
+          grid[rr] ??= [];
+          const target = grid[rr];
+          if (target) target[col + dc] = dr === 0 && dc === 0 ? cell : { ...cell, origin: false };
+        }
+      }
+      col += colspan;
+    }
+  });
+
+  return grid;
+}
+
 function readMatrix(table: Element): {
   cells: Paradigm['cells'];
   inflections: InflectionV2[];
 } {
-  const rows = Array.from(table.querySelectorAll('tr'));
+  const grid = buildGrid(table);
+  const columnLabel: string[] = [];
+  // Sub-headers sit to the right of the forms in a mixed row and qualify the
+  // spanning header above them ("imperativ pers. a II-a" + "singular").
+  // Overwriting columnLabel lost the tense and left only "singular".
+  let columnSub: string[] = [];
   const cells: Paradigm['cells'] = [];
   const inflections: InflectionV2[] = [];
   const seen = new Set<string>();
 
-  let columnHeaders: string[] = [];
-  /** Row labels still in force from an earlier `rowspan`, by remaining count. */
-  let carried: Array<{ label: string; rowsLeft: number }> = [];
+  for (const row of grid) {
+    if (!row) continue;
+    const formCols = row.map((c, i) => (c?.isForm ? i : -1)).filter((i) => i >= 0);
 
-  for (const row of rows) {
-    const tds = Array.from(row.querySelectorAll(':scope > td'));
-    const formCells = tds.filter((td) => td.classList.contains('form'));
-
-    if (formCells.length === 0) {
-      // Header row: its inflection cells name the columns. A header may span
-      // several columns ("imperativ pers. a II-a" covers two), so it is
-      // repeated to keep the positional mapping to form cells honest.
-      const headers: string[] = [];
-      for (const td of tds) {
-        if (!td.classList.contains('inflection')) continue;
-        const text = collapse(td.textContent ?? '');
-        if (!text) continue;
-        const span = Number(td.getAttribute('colspan') ?? '1');
-        for (let i = 0; i < Math.max(1, span); i++) headers.push(text);
-      }
-      if (headers.length > 0) columnHeaders = headers;
+    if (formCols.length === 0) {
+      // Header row: (re)label the columns it covers. This is what starts a new
+      // block in a verb table.
+      row.forEach((cell, i) => {
+        if (cell?.isInflection && cell.text) columnLabel[i] = cell.text;
+      });
+      columnSub = [];
       continue;
     }
 
-    const ownLabels: string[] = [];
-    for (const td of tds) {
-      if (td.classList.contains('form')) break;
-      // Only `.inflection` cells are row labels. The first cell of a verb table
-      // holds the model info ("verb (VT201) Surse flexiune: DOR") with a
-      // rowspan, and reading it as a label tagged every form with it.
-      if (!td.classList.contains('inflection')) continue;
-      const label = collapse(td.textContent ?? '');
-      if (!label) continue;
-      ownLabels.push(label);
-      // rowsLeft counts this row too, because every carried entry is
-      // decremented at the end of the row it was declared in. Storing span - 1
-      // here made a rowspan=2 label expire immediately, so "genitiv-dativ"
-      // never reached its plural row.
-      const span = Number(td.getAttribute('rowspan') ?? '1');
-      if (span > 1) carried.push({ label, rowsLeft: span });
-    }
-
-    const carriedLabels = carried.filter((c) => !ownLabels.includes(c.label)).map((c) => c.label);
-    const rowLabels = [...carriedLabels, ...ownLabels];
-
-    formCells.forEach((td, i) => {
-      const forms = Array.from(td.querySelectorAll('li'))
-        .map((li) => collapse(li.textContent ?? ''))
-        .filter(Boolean);
-      if (forms.length === 0) return;
-
-      const header = columnHeaders[i];
-      const label = [...rowLabels, ...(header ? [header] : [])].join(' ');
-      const tags = tagsFromCellLabel(label);
-      cells.push({ tags: tags.length > 0 ? tags : [label], forms });
-
-      for (const form of forms) {
-        const key = `${form}|${tags.join(',')}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        inflections.push({ form, tags, origin: 'attested', confidence: 'high' });
+    const firstForm = formCols[0] ?? 0;
+    const rowLabels: string[] = [];
+    row.forEach((cell, i) => {
+      if (!cell?.isInflection || !cell.text) return;
+      if (i < firstForm) {
+        if (!rowLabels.includes(cell.text)) rowLabels.push(cell.text);
+      } else if (!row[i]?.isForm) {
+        // To the right of the forms: a sub-header qualifying that column.
+        columnSub[i] = cell.text;
       }
     });
 
-    carried = carried
-      .map((c) => ({ ...c, rowsLeft: c.rowsLeft - 1 }))
-      .filter((c) => c.rowsLeft > 0);
+    for (const i of formCols) {
+      const cell = row[i];
+      if (!cell?.origin || cell.forms.length === 0) continue;
+      const label = [columnLabel[i], columnSub[i], ...rowLabels].filter(Boolean).join(' ');
+      const tags = tagsFromCellLabel(label);
+      cells.push({ tags: tags.length > 0 ? tags : [label || cell.text], forms: cell.forms });
+
+      for (const form of cell.forms) {
+        const key = `${form}|${tags.join(',')}`;
+        if (seen.has(key) || tags.length === 0) continue;
+        seen.add(key);
+        inflections.push({ form, tags, origin: 'attested', confidence: 'high' });
+      }
+    }
   }
 
   return { cells, inflections };

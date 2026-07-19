@@ -195,13 +195,12 @@ The API distinguishes what a dictionary said from what it worked out:
 - On `?merge`, an attested form always beats a rule-derived duplicate, and a known part of speech
   beats `unknown`.
 
-Two things it deliberately does not claim:
+One thing it deliberately does not do: a derived transcription never overwrites an attested one.
 
-- **Verb paradigms from DEXonline publish cells but no inflections.** The verb table is a multi-block
-  grid the current parser reads only partly; the forms are correct but the grammatical labels are
-  not, so they are kept for inspection rather than published as fact. Nominal declensions are
-  complete and published.
-- A derived transcription never overwrites an attested one.
+DEXonline paradigms are read as a full HTML grid, so both nominal declensions
+(casă/casa/case/casele/casei/caselor, tagged with case, number and article) and verb conjugations
+(tense, number and person, including the long infinitive and the imperative) are complete and
+published as attested inflections.
 
 ## Reliability
 
