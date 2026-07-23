@@ -62,3 +62,16 @@ describe('liftEntry', () => {
     expect(entryToV1(liftEntry(v1))).toEqual(v1);
   });
 });
+
+describe('liftEntry — homonym index', () => {
+  it('carries an index a v1-shaped provider parsed', () => {
+    // v1 has no field for it, but m.dex.ro fuses it onto the headword and
+    // parses it out; dropping it here would lose it before /v2.
+    const lifted = liftEntry({ ...v1, homonymIndex: 2 });
+    expect(lifted.homonymIndex).toBe(2);
+  });
+
+  it('omits it when there is none', () => {
+    expect(liftEntry(v1).homonymIndex).toBeUndefined();
+  });
+});

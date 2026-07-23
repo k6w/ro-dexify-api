@@ -13,6 +13,15 @@ import { emptyRelations } from '../entry-v2.js';
  */
 import type { NormalizedEntry, Sense } from '../entry.js';
 
+/**
+ * A v1 entry that also knows its homonym index.
+ *
+ * v1's NormalizedEntry has no field for it, but a provider building a flat
+ * entry may still have parsed one (m.dex.ro fuses it onto the headword). Rather
+ * than lose it on the way to v2, it is read off the input when present.
+ */
+type LiftableEntry = NormalizedEntry & { homonymIndex?: number };
+
 export interface LiftOptions {
   /** 0-100 source authority; defaults to the neutral 50. */
   authority?: number;
@@ -50,7 +59,7 @@ export function liftSense(sense: Sense): SenseNode {
   };
 }
 
-export function liftEntry(entry: NormalizedEntry, opts: LiftOptions = {}): EntryV2 {
+export function liftEntry(entry: LiftableEntry, opts: LiftOptions = {}): EntryV2 {
   const out: EntryV2 = {
     id: entry.id,
     headword: entry.headword,
@@ -85,6 +94,7 @@ export function liftEntry(entry: NormalizedEntry, opts: LiftOptions = {}): Entry
   };
 
   if (entry.gender) out.gender = entry.gender;
+  if (entry.homonymIndex !== undefined) out.homonymIndex = entry.homonymIndex;
   if (entry.etymology) out.etymology = entry.etymology;
   if (entry.conjugation) {
     out.paradigm = {
@@ -100,9 +110,6 @@ export function liftEntry(entry: NormalizedEntry, opts: LiftOptions = {}): Entry
   return out;
 }
 
-export function liftEntries(
-  entries: readonly NormalizedEntry[],
-  opts: LiftOptions = {},
-): EntryV2[] {
+export function liftEntries(entries: readonly LiftableEntry[], opts: LiftOptions = {}): EntryV2[] {
   return entries.map((e) => liftEntry(e, opts));
 }

@@ -60,3 +60,12 @@ describe('MdexParser', () => {
     expect(parseMdex(fixture('mdex', 'zzzqqq'), 'zzzqqq')).toEqual([]);
   });
 });
+
+describe('MdexParser — homonyms', () => {
+  it('records the homonym index it strips from the headword', () => {
+    const entries = parseMdex(fixture('mdex', 'casă'), 'casă');
+    const numbered = entries.find((e) => e.homonymIndex !== undefined);
+    expect(numbered?.displayHeadword).not.toMatch(/\d$/);
+    expect(numbered?.homonymIndex).toBeGreaterThan(0);
+  });
+});

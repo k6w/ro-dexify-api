@@ -17,6 +17,7 @@
  */
 import { parseHTML } from 'linkedom';
 import { readGrammar } from '../../extract/abbrev.js';
+import { splitHomonym } from '../../lib/headword.js';
 import { deterministicId } from '../../lib/id.js';
 import type { Example, NormalizedEntry, Sense } from '../../schema/entry.js';
 
@@ -44,7 +45,11 @@ export function parseMdex(body: string, word: string): NormalizedEntry[] {
     }
 
     const strong = block.querySelector('strong');
-    const display = cleanHeadword(strong?.textContent ?? '') || word;
+    // m.dex.ro renders the homonym index and trailing punctuation straight
+    // into the headword ("CÁSĂ1,"); splitHomonym is shared with the other
+    // providers so they cannot drift apart.
+    const split = splitHomonym(strong?.textContent ?? '');
+    const display = split.lemma || word;
     const text = collapse(block.textContent ?? '');
     if (!text || text.length < 8) continue;
 
@@ -59,11 +64,12 @@ export function parseMdex(body: string, word: string): NormalizedEntry[] {
     if (senses.length === 0) continue;
 
     const lower = display.normalize('NFC').toLocaleLowerCase('ro-RO');
-    const entry: NormalizedEntry = {
+    const entry: NormalizedEntry & { homonymIndex?: number } = {
       id: deterministicId(['mdex', lower, idx]),
       headword: lower,
       displayHeadword: display,
       partOfSpeech: grammar.partOfSpeech,
+      ...(split.homonymIndex !== undefined ? { homonymIndex: split.homonymIndex } : {}),
       inflections: [],
       pronunciations: [],
       senses,
@@ -91,22 +97,6 @@ function collapse(s: string): string {
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * m.dex.ro renders the headword with its tonic accent and homonym index fused
- * on ("CÁSĂ1,"). Strip both, and the trailing comma.
- */
-function cleanHeadword(raw: string): string {
-  // Order matters: "CÁSĂ1," needs the comma removed before the digit is at the
-  // end, so strip punctuation and digits alternately until neither applies.
-  let out = collapse(raw);
-  for (;;) {
-    const next = out.replace(/[,;:.\s]+$/, '').replace(/\d+$/, '');
-    if (next === out) break;
-    out = next;
-  }
-  return out.trim();
 }
 
 function readSourceName(block: Element): string | undefined {
