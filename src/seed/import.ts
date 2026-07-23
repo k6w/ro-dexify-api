@@ -3,6 +3,8 @@ import type Database from 'better-sqlite3';
 import { ulid } from 'ulid';
 import { normalizeHeadword } from '../lib/headword.js';
 import type { Logger } from '../lib/logger.js';
+import { liftEntry } from '../schema/adapters/lift.js';
+import type { NormalizedEntry } from '../schema/entry.js';
 import { TOP_RO_WORDS } from './frequency-list.js';
 import { MysqlInsertStream, readGzippedSqlDump } from './mysql-stream.js';
 import { dexInternalRepToText } from './normalize.js';
@@ -148,6 +150,10 @@ function persist(
   const insertFts = db.prepare(
     `INSERT INTO entries_fts (headword, sense_text, provider_id, entry_id) VALUES (?, ?, 'dexonline', ?)`,
   );
+  // Written in a second pass: senses are inserted after entries, so the full
+  // entry is not known at insert time. Without it, loadEntriesV2 rebuilds every
+  // seeded word from the relational tables on each read.
+  const setPayload = db.prepare(`UPDATE entries SET payload_json = ? WHERE id = ?`);
   const insertVerb = db.prepare(
     `INSERT OR REPLACE INTO verb_forms (lemma, form_key, form, class_roman) VALUES (?, ?, ?, ?)`,
   );
@@ -168,6 +174,7 @@ function persist(
     }
 
     const ordPerEntry = new Map<string, number>();
+    const sensesByRow = new Map<string, Array<{ number: number; text: string }>>();
     let senseCount = 0;
     for (const link of links) {
       const rowId = entryRowId.get(link.entryId);
@@ -179,9 +186,49 @@ function persist(
       const ord = (ordPerEntry.get(rowId) ?? 0) + 1;
       ordPerEntry.set(rowId, ord);
       insertSense.run(rowId, ord, senseText, ord - 1);
+      const bucket = sensesByRow.get(rowId);
+      if (bucket) bucket.push({ number: ord, text: senseText });
+      else sensesByRow.set(rowId, [{ number: ord, text: senseText }]);
       const e = entriesByHead.get(link.entryId);
       if (e) insertFts.run(e.headword, senseText, rowId);
       senseCount++;
+    }
+
+    // Store the v2 payload now that each entry's senses are known.
+    for (const [id, e] of entriesByHead) {
+      const rowId = entryRowId.get(id);
+      if (!rowId) continue;
+      const display = e.headword;
+      const headword = normalizeHeadword(display.split(/\s/)[0] ?? display);
+      const payload = liftEntry(
+        {
+          id: rowId,
+          headword,
+          displayHeadword: display,
+          partOfSpeech: (e.pos ?? 'unknown') as NormalizedEntry['partOfSpeech'],
+          inflections: [],
+          pronunciations: [],
+          senses: (sensesByRow.get(rowId) ?? []).map((x) => ({
+            number: x.number,
+            text: x.text,
+            register: [],
+            examples: [],
+            synonyms: [],
+            antonyms: [],
+          })),
+          source: {
+            providerId: 'dexonline',
+            providerName: 'DEXonline',
+            url: `https://dexonline.ro/definitie/${encodeURIComponent(display)}`,
+            license: 'GPL-2.0-or-later',
+            attribution: 'DEXonline.ro (GPL dump)',
+            fetchedAt,
+            cacheHit: false,
+          },
+        },
+        { authority: 80, sourceName: 'DEX dump' },
+      );
+      setPayload.run(JSON.stringify(payload), rowId);
     }
 
     let infl = 0;
