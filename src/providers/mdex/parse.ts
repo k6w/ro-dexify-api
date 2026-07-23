@@ -21,14 +21,21 @@ import { splitHomonym } from '../../lib/headword.js';
 import { deterministicId } from '../../lib/id.js';
 import type { Example, NormalizedEntry, Sense } from '../../schema/entry.js';
 
-export function parseMdex(body: string, word: string): NormalizedEntry[] {
+/**
+ * v1 has no homonym field, but m.dex.ro fuses the index onto the headword and
+ * this parser separates it. Declared here so it survives typecheck through to
+ * liftEntry, which carries it into v2.
+ */
+type MdexEntry = NormalizedEntry & { homonymIndex?: number };
+
+export function parseMdex(body: string, word: string): MdexEntry[] {
   if (!body.trim()) return [];
   const { document } = parseHTML(body);
 
   const blocks = Array.from(document.querySelectorAll('.mydef'));
   if (blocks.length === 0) return [];
 
-  const out: NormalizedEntry[] = [];
+  const out: MdexEntry[] = [];
   let idx = 0;
 
   for (const block of blocks) {
@@ -64,7 +71,7 @@ export function parseMdex(body: string, word: string): NormalizedEntry[] {
     if (senses.length === 0) continue;
 
     const lower = display.normalize('NFC').toLocaleLowerCase('ro-RO');
-    const entry: NormalizedEntry & { homonymIndex?: number } = {
+    const entry: MdexEntry = {
       id: deterministicId(['mdex', lower, idx]),
       headword: lower,
       displayHeadword: display,
