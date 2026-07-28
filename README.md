@@ -141,14 +141,22 @@ inflections, DEXonline's senses and etymology, and Wiktionary's IPA and declensi
 }
 ```
 
-Two tiers:
+Three tiers, best first:
 
 1. **A human recording** from Wikimedia Commons — `Ro-<word>.oga` plus the Lingua Libre corpus
    (24,088 Romanian files). Free, no API key. Licences differ per file, so licence and attribution
    are read per recording and travel with the audio.
-2. **espeak-ng synthesis** (compiled to WebAssembly — no binary to install, no model to download) for
-   everything else, so the endpoint always returns audio. It is driven by the IPA below rather than
-   by the spelling, so what gets spoken is the verified transcription.
+2. **Piper neural TTS** (`ro_RO-mihai-medium`) — optional. Natural-sounding, but it needs a ~60 MB
+   model and the Piper binary, so it is used only when both `PIPER_BIN` and `PIPER_MODEL` point at
+   files that exist. `pnpm voices` fetches the model; the binary comes from
+   [rhasspy/piper releases](https://github.com/rhasspy/piper/releases).
+3. **espeak-ng synthesis** (compiled to WebAssembly — no binary to install, no model to download),
+   always available, so the endpoint works on a fresh clone and never fails for an ordinary word. It
+   is driven by the IPA below rather than by the spelling, so what gets spoken is the verified
+   transcription.
+
+A misconfigured Piper degrades rather than breaks: missing variables, stale paths, a spawn failure, a
+non-zero exit, non-WAV output or a hang all fall through to espeak.
 
 Attribution is also returned in `X-Audio-Engine`, `X-Audio-License`, `X-Audio-Attribution` and
 `X-Audio-IPA`. Those are **percent-encoded**, because HTTP headers are ASCII and `/ˈka.sə/` is not;
@@ -231,6 +239,8 @@ RATE_LIMIT_PER_MIN=60
 ENABLE_DLR=false
 FORVO_API_KEY=
 FORVO_DAILY_QUOTA=500
+PIPER_BIN=                # optional; enables the neural TTS tier
+PIPER_MODEL=              # optional; path to ro_RO-mihai-medium.onnx
 DEX_DUMP_URL=https://dexonline.ro/static/download/dex-database.sql.gz
 REQUIRE_API_KEY=false
 ```
@@ -244,6 +254,7 @@ pnpm start              run the compiled build
 pnpm bootstrap [...]    installer + seeder
 pnpm seed               re-seed without pnpm install
 pnpm fixtures:refresh   re-record test fixtures from the live sources
+pnpm voices             download the optional Piper Romanian voice
 pnpm test               vitest
 pnpm test:ci            vitest + a guard that fails if the suite did not actually run
 pnpm check:live         run the parsers against the live sites (upstream drift check)
@@ -260,6 +271,7 @@ pnpm lint               biome check
 - **Wikimedia Commons audio** — per file; public domain through CC BY-SA 4.0, returned with each
   response.
 - **espeak-ng** — GPL-3.0; the synthesised audio itself is offered as CC0.
+- **Piper** (`ro_RO-mihai-medium`) — MIT, when the optional tier is enabled.
 - **Forvo** — proprietary, per-clip credit to the speaker.
 
 Per-provider attribution travels in every response in `entry.source.attribution`, and per-recording
