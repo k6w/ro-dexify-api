@@ -3,7 +3,8 @@
  *
  * Tiers, best first:
  *   1. a human recording from Wikimedia Commons / Lingua Libre
- *   2. espeak-ng (WASM) driven by our own IPA
+ *   2. Piper neural TTS, when the operator has configured it (see ./piper.ts)
+ *   3. espeak-ng (WASM) driven by our own IPA -- always available
  *
  * Every result names the engine and carries the licence and attribution that
  * apply to it, because tier 1 is CC-licensed third-party material and tier 2 is
@@ -18,12 +19,13 @@ import { join, resolve } from 'node:path';
 import type { Logger } from '../lib/logger.js';
 import { transcribe } from '../phonetics/index.js';
 import { findHumanRecording } from './commons.js';
+import { synthesizeWithPiper } from './piper.js';
 import { synthesize } from './synthesize.js';
 
 export interface Pronunciation {
   bytes: Buffer;
   mime: string;
-  engine: 'commons' | 'espeak';
+  engine: 'commons' | 'piper' | 'espeak';
   license: string;
   attribution: string;
   /** Upstream URL for a human recording; absent for synthesised audio. */
@@ -37,6 +39,8 @@ export interface PronounceOptions {
   stressMark?: string;
   /** Skip Commons and synthesise directly. */
   synthesizeOnly?: boolean;
+  /** Force espeak, skipping Piper too. Used by the tests to stay deterministic. */
+  forceEspeak?: boolean;
   logger: Logger;
 }
 
@@ -100,6 +104,28 @@ export async function pronounce(word: string, opts: PronounceOptions): Promise<P
       // A Commons outage falls through to synthesis rather than failing.
       opts.logger.warn({ word, err: String(err) }, 'commons_audio_failed');
     }
+  }
+
+  // Piper is a quality upgrade and is skipped silently when not configured.
+  const piperPath = cachePath(word, 'piper');
+  const piperCached = readCache(piperPath);
+  const piper = opts.forceEspeak
+    ? undefined
+    : piperCached
+      ? { bytes: piperCached, mime: 'audio/wav' as const, engine: 'piper' as const }
+      : await synthesizeWithPiper(word);
+  if (piper) {
+    if (!piperCached) writeCache(piperPath, piper.bytes);
+    return {
+      bytes: piper.bytes,
+      mime: piper.mime,
+      engine: 'piper',
+      license: 'MIT',
+      attribution: 'Synthesised by ro-dexify-api using Piper (ro_RO-mihai-medium)',
+      ipa: transcription.ipa,
+      syllabification: transcription.syllabification,
+      stressOrigin: transcription.stressOrigin,
+    };
   }
 
   const path = cachePath(word, 'espeak');

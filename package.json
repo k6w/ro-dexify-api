@@ -23,18 +23,10 @@
     "lint": "biome check src tests scripts",
     "lint:fix": "biome check --write src tests scripts",
     "format": "biome format --write src tests scripts",
-    "check:live": "tsx scripts/check-live.ts"
+    "check:live": "tsx scripts/check-live.ts",
+    "voices": "tsx scripts/fetch-voices.ts"
   },
-  "keywords": [
-    "romanian",
-    "dictionary",
-    "dexonline",
-    "doom",
-    "wiktionary",
-    "forvo",
-    "dlr",
-    "api"
-  ],
+  "keywords": ["romanian", "dictionary", "dexonline", "doom", "wiktionary", "forvo", "dlr", "api"],
   "license": "MIT",
   "dependencies": {
     "@hono/node-server": "^1.13.7",

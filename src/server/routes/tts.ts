@@ -16,9 +16,13 @@ ttsRoutes.get('/tts/:word', async (c) => {
   const word = HeadwordParam.parse(decodeURIComponent(c.req.param('word')));
   const logger = c.get('logger');
   const wantsMeta = c.req.query('meta') !== undefined;
-  const synthesizeOnly = c.req.query('engine') === 'espeak';
+  const forceEspeak = c.req.query('engine') === 'espeak';
 
-  const result = await pronounce(word, { logger, synthesizeOnly });
+  const result = await pronounce(word, {
+    logger,
+    synthesizeOnly: forceEspeak,
+    forceEspeak,
+  });
 
   if (wantsMeta) {
     return c.json({
