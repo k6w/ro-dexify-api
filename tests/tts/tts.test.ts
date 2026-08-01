@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.js';
 import { getLogger } from '../../src/lib/logger.js';
-import { synthesize } from '../../src/tts/synthesize.js';
+import { espeakVoice, synthesize } from '../../src/tts/synthesize.js';
 
 const app = buildApp({ logger: getLogger() });
 
@@ -88,7 +88,56 @@ describe('GET /v1/tts/:word', () => {
   });
 
   it('rejects input that is not a headword', async () => {
-    const res = await app.request('/v1/tts/' + encodeURIComponent('<script>'));
+    const res = await app.request(`/v1/tts/${encodeURIComponent('<script>')}`);
     expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+}, 30_000);
+
+describe('voice selection', () => {
+  it('synthesises with a female voice by default', async () => {
+    const r = await synthesize('casă', { stressMark: 'cásă' });
+    expect(r.voice).toBe('ro+f3');
+  });
+
+  it('uses a male variant only when asked', async () => {
+    expect((await synthesize('casă', { voice: 'male' })).voice).toBe('ro+m3');
+  });
+
+  it('produces different audio for the two voices', async () => {
+    // Same phonemes, different speaker: the transcription must not change.
+    const f = await synthesize('casă', { voice: 'female' });
+    const m = await synthesize('casă', { voice: 'male' });
+    expect(f.ipa).toBe(m.ipa);
+    expect(Buffer.compare(f.bytes, m.bytes)).not.toBe(0);
+  });
+
+  it('honours a TTS_VOICE override', () => {
+    // espeakVoice is checked directly rather than through synthesize(), so the
+    // test does not have to mutate and restore process.env.
+    expect(espeakVoice('female', { TTS_VOICE: 'ro+f5' })).toBe('ro+f5');
+    expect(espeakVoice('male', { TTS_VOICE: 'ro+f5' })).toBe('ro+f5');
+    expect(espeakVoice('female', {})).toBe('ro+f3');
+  });
+
+  it('reports the voice on the endpoint', async () => {
+    const res = await app.request('/v1/tts/cas%C4%83?engine=espeak&meta');
+    const body = (await res.json()) as { voice?: string; engine: string };
+    expect(body.engine).toBe('espeak');
+    expect(body.voice).toBe('ro+f3');
+  });
+
+  it('serves the male voice on ?voice=male', async () => {
+    const res = await app.request('/v1/tts/cas%C4%83?engine=espeak&voice=male&meta');
+    expect(((await res.json()) as { voice?: string }).voice).toBe('ro+m3');
+  });
+
+  it('caches the two voices separately', async () => {
+    // Keying the cache on the word alone would serve whichever was generated
+    // first for both.
+    const f = await app.request('/v1/tts/lapte?engine=espeak');
+    const m = await app.request('/v1/tts/lapte?engine=espeak&voice=male');
+    const fb = Buffer.from(await f.arrayBuffer());
+    const mb = Buffer.from(await m.arrayBuffer());
+    expect(Buffer.compare(fb, mb)).not.toBe(0);
   });
 }, 30_000);

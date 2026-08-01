@@ -17,11 +17,15 @@ ttsRoutes.get('/tts/:word', async (c) => {
   const logger = c.get('logger');
   const wantsMeta = c.req.query('meta') !== undefined;
   const forceEspeak = c.req.query('engine') === 'espeak';
+  // Synthesis is female unless a male voice is asked for. Human recordings are
+  // unaffected: Commons publishes no speaker gender to filter on.
+  const voice = c.req.query('voice') === 'male' ? 'male' : 'female';
 
   const result = await pronounce(word, {
     logger,
     synthesizeOnly: forceEspeak,
     forceEspeak,
+    voice,
   });
 
   if (wantsMeta) {
@@ -33,6 +37,7 @@ ttsRoutes.get('/tts/:word', async (c) => {
       license: result.license,
       attribution: result.attribution,
       ...(result.sourceUrl ? { sourceUrl: result.sourceUrl } : {}),
+      ...(result.voice ? { voice: result.voice } : {}),
       audioUrl: `/v1/tts/${encodeURIComponent(word)}`,
       ipa: result.ipa,
       syllabification: result.syllabification,
@@ -50,6 +55,7 @@ ttsRoutes.get('/tts/:word', async (c) => {
       'content-type': result.mime,
       'content-length': String(result.bytes.length),
       'x-audio-engine': result.engine,
+      ...(result.voice ? { 'x-audio-voice': result.voice } : {}),
       'x-audio-license': asciiHeader(result.license),
       'x-audio-attribution': asciiHeader(result.attribution),
       'x-audio-ipa': asciiHeader(result.ipa),

@@ -146,10 +146,11 @@ Three tiers, best first:
 1. **A human recording** from Wikimedia Commons — `Ro-<word>.oga` plus the Lingua Libre corpus
    (24,088 Romanian files). Free, no API key. Licences differ per file, so licence and attribution
    are read per recording and travel with the audio.
-2. **Piper neural TTS** (`ro_RO-mihai-medium`) — optional. Natural-sounding, but it needs a ~60 MB
-   model and the Piper binary, so it is used only when both `PIPER_BIN` and `PIPER_MODEL` point at
-   files that exist. `pnpm voices` fetches the model; the binary comes from
-   [rhasspy/piper releases](https://github.com/rhasspy/piper/releases).
+2. **Piper neural TTS** (`ro_RO-mihai-medium`) — optional, and **only for `?voice=male`**. Piper's
+   catalogue has exactly one Romanian voice and it is male, so it is never used for the default
+   female voice. It also needs a ~60 MB model and the Piper binary, so it runs only when both
+   `PIPER_BIN` and `PIPER_MODEL` point at files that exist. `pnpm voices` fetches the model; the
+   binary comes from [rhasspy/piper releases](https://github.com/rhasspy/piper/releases).
 3. **espeak-ng synthesis** (compiled to WebAssembly — no binary to install, no model to download),
    always available, so the endpoint works on a fresh clone and never fails for an ordinary word. It
    is driven by the IPA below rather than by the spelling, so what gets spoken is the verified
@@ -162,7 +163,14 @@ Attribution is also returned in `X-Audio-Engine`, `X-Audio-License`, `X-Audio-At
 `X-Audio-IPA`. Those are **percent-encoded**, because HTTP headers are ASCII and `/ˈka.sə/` is not;
 `?meta` carries the values verbatim.
 
-`?engine=espeak` skips the Commons lookup. Audio is cached on disk under `.cache/tts/`.
+**Synthesis uses a female voice by default** (espeak `ro+f3`). `?voice=male` switches it, and
+`TTS_VOICE` overrides the variant outright (`ro+f1`…`ro+f5` female, `ro+m1`…`ro+m7` male). The choice
+affects synthesis only — a human recording is whoever recorded the word, and Commons publishes no
+speaker gender to filter on, so `casă` is read by Calusarul and `copil` by Andreea Teodoraa
+regardless. Use `?engine=espeak` for a consistent voice on every word.
+
+`?engine=espeak` skips the Commons lookup. Audio is cached on disk per word **and voice**, under
+`.cache/tts/`.
 
 **ro.wiktionary is not used for audio.** Of the eight recorded fixture words exactly one carried an
 `{{audio}}` template, and it pointed at `Fr-ou.ogg` — the French word.
@@ -239,7 +247,8 @@ RATE_LIMIT_PER_MIN=60
 ENABLE_DLR=false
 FORVO_API_KEY=
 FORVO_DAILY_QUOTA=500
-PIPER_BIN=                # optional; enables the neural TTS tier
+TTS_VOICE=                # optional; espeak variant override, e.g. ro+f5
+PIPER_BIN=                # optional; enables the neural tier for ?voice=male
 PIPER_MODEL=              # optional; path to ro_RO-mihai-medium.onnx
 DEX_DUMP_URL=https://dexonline.ro/static/download/dex-database.sql.gz
 REQUIRE_API_KEY=false

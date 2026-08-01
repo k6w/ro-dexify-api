@@ -16,15 +16,43 @@ export interface Synthesized {
   bytes: Buffer;
   mime: string;
   engine: 'espeak';
+  /** The espeak voice used, e.g. "ro+f3". */
+  voice: string;
   /** The IPA actually spoken. */
   ipa: string;
 }
+
+export type VoiceGender = 'female' | 'male';
+
+/**
+ * espeak-ng voice variants. The base "ro" voice is male, and appending a
+ * variant selects a different speaker built from the same phoneme set, so the
+ * pronunciation is identical and only the timbre changes.
+ *
+ * Overridable with TTS_VOICE for anyone who prefers a different variant
+ * (f1-f5 are female, m1-m7 male).
+ */
+const VOICES: Record<VoiceGender, string> = {
+  female: 'ro+f3',
+  male: 'ro+m3',
+};
 
 export interface SynthesizeOptions {
   /** Lemma accented on the stressed vowel, from DOOM or DEXonline. */
   stressMark?: string;
   /** Words per minute; espeak's default (175) is fast for a single word. */
   speed?: number;
+  /** Defaults to female. */
+  voice?: VoiceGender;
+}
+
+export function espeakVoice(
+  gender: VoiceGender = 'female',
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const override = env.TTS_VOICE?.trim();
+  if (override) return override;
+  return VOICES[gender];
 }
 
 /**
@@ -78,20 +106,22 @@ export async function synthesize(
 
   const phonemes = ipaToEspeak(transcription.ipa);
   const speed = options.speed ?? 130;
+  const voice = espeakVoice(options.voice ?? 'female');
 
   let bytes: Uint8Array;
   try {
-    bytes = await text2wav(`[[${phonemes}]]`, { voice: 'ro', speed });
+    bytes = await text2wav(`[[${phonemes}]]`, { voice, speed });
   } catch {
     // Fall back to the spelling. Romanian is phonemic enough that espeak's own
     // rules are a reasonable second choice.
-    bytes = await text2wav(word, { voice: 'ro', speed });
+    bytes = await text2wav(word, { voice, speed });
   }
 
   return {
     bytes: Buffer.from(bytes),
     mime: 'audio/wav',
     engine: 'espeak',
+    voice,
     ipa: transcription.ipa,
   };
 }

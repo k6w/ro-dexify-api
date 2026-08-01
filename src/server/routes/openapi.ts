@@ -97,6 +97,14 @@ function buildOpenApi(): unknown {
               description: "Force an engine; 'espeak' skips the Commons lookup.",
               schema: { type: 'string', enum: ['espeak'] },
             },
+            {
+              name: 'voice',
+              in: 'query',
+              description:
+                'Synthesised voice. Defaults to female. Human recordings are unaffected, ' +
+                'since Commons publishes no speaker gender to filter on.',
+              schema: { type: 'string', enum: ['female', 'male'], default: 'female' },
+            },
           ],
           responses: {
             '200': {
@@ -109,7 +117,8 @@ function buildOpenApi(): unknown {
                     type: 'object',
                     properties: {
                       word: { type: 'string' },
-                      engine: { type: 'string', enum: ['commons', 'espeak'] },
+                      engine: { type: 'string', enum: ['commons', 'piper', 'espeak'] },
+                      voice: { type: 'string' },
                       mime: { type: 'string' },
                       license: { type: 'string' },
                       attribution: { type: 'string' },
