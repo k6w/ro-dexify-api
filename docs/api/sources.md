@@ -25,7 +25,7 @@ curl -s 'localhost:3000/v1/sources' | jq '.sources[] | { id, enabled, breakerSta
 | `homepage` | The upstream site |
 | `license` | Licence of that source's data |
 | `attribution` | Credit line, also on every entry |
-| `capabilities` | What it provides — see below |
+| `capabilities` | What it provides: see below |
 | `ttlSeconds` | How long its answers are cached |
 | `rateLimitMs` | Minimum gap between requests to this source |
 | `enabled` | Whether it is used by default |
@@ -44,16 +44,16 @@ Each provider has a circuit breaker. After 5 consecutive failures it opens for
 60 seconds, and requests skip that provider instead of waiting for it to time
 out again.
 
-- **`closed`** — normal.
-- **`open`** — failing; being skipped. Lookups still work, with fewer sources.
-- **`half-open`** — trying one request to see if it recovered.
+- **`closed`**: normal.
+- **`open`**: failing; being skipped. Lookups still work, with fewer sources.
+- **`half-open`**: trying one request to see if it recovered.
 
 An `open` breaker is the first thing to check if results suddenly got thinner.
 See [Troubleshooting](../operations/troubleshooting.md).
 
 ## Why `enabled` is false for some
 
-- `mdex` — mirrors DEXonline in poorer markup; enabling it duplicates every
+- `mdex`: mirrors DEXonline in poorer markup; enabling it duplicates every
   definition. Reachable with `?sources=mdex`.
-- `forvo` — needs `FORVO_API_KEY`.
-- `dlr` — upstream no longer exists. See [DLR](../sources/dlr.md).
+- `forvo`: needs `FORVO_API_KEY`.
+- `dlr`: upstream no longer exists. See [DLR](../sources/dlr.md).

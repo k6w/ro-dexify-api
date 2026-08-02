@@ -1,6 +1,6 @@
 # Wiktionary (ro.wiktionary.org)
 
-The Romanian Wiktionary — community-edited, freely licensed.
+The Romanian Wiktionary, community-edited, freely licensed.
 
 - Site: <https://ro.wiktionary.org>
 - Licence: CC BY-SA 4.0
@@ -10,7 +10,7 @@ The Romanian Wiktionary — community-edited, freely licensed.
 ## What it gives
 
 - definitions
-- **IPA** — the only source that publishes a human-written transcription
+- **IPA**: the only source that publishes a human-written transcription
 - etymology
 - full declension / conjugation from templates
 - gender
@@ -42,7 +42,7 @@ curl -s 'localhost:3000/v2/word/casă/wiktionary' | jq '.entries[0] | {
 ## Only the Romanian section
 
 Wiktionary puts every language sharing a spelling on one page. `ou` has Romanian,
-Catalan, English and French sections. Only `=={{limba|ron}}==` is read — without
+Catalan, English and French sections. Only `=={{limba|ron}}==` is read, without
 that, the Romanian word came back with English and French IPA.
 
 ## Senses vs derived terms
@@ -52,7 +52,7 @@ synonyms and hypernyms. **Only the `#` lines under the part-of-speech section
 are senses.**
 
 For `casă` that is 10 senses. `acasă`, `casnic`, `căscioară`, `casă de bani` are
-derived terms and compounds — they appear in `derived` and `compounds`, never in
+derived terms and compounds, they appear in `derived` and `compounds`, never in
 `senses`.
 
 ## The markup it actually uses
@@ -63,7 +63,7 @@ Romanian Wiktionary uses Romanian template names, not the English ones:
 |---|---|
 | Part of speech | `{{-substantiv-\|ron}}`, `{{-verb-\|ron}}` |
 | Gender | `{{f}}`, `{{m}}`, `{{n}}` |
-| IPA | `{{AFI\|/'ka.sə/}}` — *Alfabetul Fonetic Internațional*, **not** `{{IPA}}` |
+| IPA | `{{AFI\|/'ka.sə/}}`: *Alfabetul Fonetic Internațional*, **not** `{{IPA}}` |
 | Etymology | `{{-etimologie-}}` |
 | Declension | `{{substantiv-ron\|nom-sg=casă\|nom-pl=case\|…}}` |
 | Conjugation | `{{verb-ron\|inf=merge\|ind=merg\|conj=meargă\|part=mers\|cj=III}}` |
@@ -76,7 +76,7 @@ are normalised on the way in, so `{{AFI|/'ka.sə/}}` becomes `/ˈka.sə/`.
 
 ## No audio
 
-Romanian Wiktionary almost never carries pronunciation audio — of the eight words
+Romanian Wiktionary almost never carries pronunciation audio, of the eight words
 in the test corpus, exactly one had an `{{audio}}` template and it pointed at the
 **French** recording. Audio comes from Wikimedia Commons instead; see
 [Pronunciation](../api/pronunciation.md).

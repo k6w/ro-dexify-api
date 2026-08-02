@@ -30,7 +30,7 @@ Dictionaries copy each other. An entry whose senses are all already covered by a
 higher-authority entry is dropped.
 
 Comparison is diacritic- and punctuation-insensitive and deliberately
-conservative — only near-identical text collapses. Different wordings of the
+conservative, only near-identical text collapses. Different wordings of the
 same idea both survive.
 
 Entries with only very short senses are always kept, since a short string is too
@@ -49,7 +49,7 @@ definitions. They have the highest authority, so included by default they would
 fill the response with entries carrying no meanings.
 
 They are excluded unless you pass `?orthographic`. A provider is never filtered
-to nothing by this rule — the `doom` provider's own entries are orthographic by
+to nothing by this rule, the `doom` provider's own entries are orthographic by
 nature and always come through.
 
 ## Merging
@@ -58,7 +58,7 @@ nature and always come through.
 
 **Grouping** is by lemma + part of speech + homonym index. Genuine homonyms stay
 apart. Only DEXonline publishes a homonym index, so an entry without one joins
-the lowest-numbered homonym for its lemma — otherwise DOOM's stress would never
+the lowest-numbered homonym for its lemma, otherwise DOOM's stress would never
 reach the senses it belongs to.
 
 **Combining:**
@@ -86,5 +86,5 @@ curl -s 'localhost:3000/v2/word/casă?merge'                  | jq '.entries|len
 ```
 
 120 definitions → 28 after lemma matching and the orthographic exclusion → 8
-after ranking and deduplication. Across all providers, `?merge` gives 4 — one
+after ranking and deduplication. Across all providers, `?merge` gives 4, one
 per distinct word.

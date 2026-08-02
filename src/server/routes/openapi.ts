@@ -5,15 +5,55 @@ export const openapiRoutes = new Hono();
 
 openapiRoutes.get('/openapi.json', (c) => c.json(buildOpenApi()));
 
+/** Scalar reference configuration. */
+const SCALAR_CONFIG = {
+  theme: 'default',
+  layout: 'modern',
+  expandAllModelSections: true,
+  showOperationId: true,
+  expandAllResponses: true,
+  defaultOpenAllTags: true,
+  hideClientButton: false,
+  showSidebar: true,
+  showDeveloperTools: 'localhost',
+  showToolbar: 'localhost',
+  operationTitleSource: 'summary',
+  persistAuth: false,
+  telemetry: true,
+  externalUrls: {
+    dashboardUrl: 'https://dashboard.scalar.com',
+    registryUrl: 'https://registry.scalar.com',
+    proxyUrl: 'https://proxy.scalar.com',
+    apiBaseUrl: 'https://api.scalar.com',
+  },
+  default: false,
+  isEditable: false,
+  hideModels: false,
+  documentDownloadType: 'both',
+  hideTestRequestButton: false,
+  hideSearch: false,
+  hideDarkModeToggle: false,
+  withDefaultFonts: true,
+  defaultOpenFirstTag: true,
+  expandAllSchemaProperties: false,
+  orderSchemaPropertiesBy: 'alpha',
+  orderRequiredPropertiesFirst: true,
+  _integration: 'html',
+  modelsSectionLabel: 'Models',
+  hideDownloadButton: false,
+  slug: 'api-1',
+  title: 'API #1',
+  url: '/openapi.json',
+};
+
 openapiRoutes.get('/docs', (c) =>
   c.html(`<!doctype html>
 <html><head><meta charset="utf-8" />
-  <title>ro-dexify-api — API reference</title>
+  <title>ro-dexify-api reference</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-  <script id="api-reference" data-url="/openapi.json"
-          data-configuration='{"theme":"purple","layout":"modern","defaultOpenAllTags":false,"hideDownloadButton":false}'></script>
+  <script id="api-reference" data-configuration='${JSON.stringify(SCALAR_CONFIG).replace(/'/g, '&apos;')}'></script>
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 </body></html>`),
 );
@@ -22,7 +62,7 @@ openapiRoutes.get('/docs', (c) =>
  * Sidebar sections.
  *
  * Without `tags` every operation lands in one flat, ungrouped list, which is
- * unreadable once there are eleven of them — four of which are variations on
+ * unreadable once there are eleven of them, four being variations on
  * "look up a word" and indistinguishable by path alone.
  *
  * Order here is the order Scalar renders, so it runs most-used first.
@@ -69,13 +109,13 @@ function buildOpenApi(): unknown {
         '',
         '### Where to start',
         '',
-        '`GET /v1/word/casă` — everything about a word.  ',
-        '`GET /v1/tts/casă` — hear it.',
+        '`GET /v1/word/casă` gives you everything about a word.  ',
+        '`GET /v1/tts/casă` lets you hear it.',
         '',
         '### Two response shapes',
         '',
-        '- **`/v1`** — senses are a flat list. Frozen; safe for existing clients.',
-        '- **`/v2`** — the full entry: a nested sense tree with typed nodes, per-sense',
+        '- **`/v1`**: senses are a flat list. Frozen, so existing clients keep working.',
+        '- **`/v2`**: the full entry. A nested sense tree with typed nodes, per-sense',
         '  relations and sources, declension tables, and `origin`/`confidence` markers.',
         '',
         'Only `/word` is versioned. Everything else lives under `/v1`.',
@@ -83,7 +123,7 @@ function buildOpenApi(): unknown {
         '### Reading a response',
         '',
         'Lookups return `{ headword, entries[], cache, errors[] }`. A non-empty `errors`',
-        'alongside non-empty `entries` is normal — one dictionary failed, the rest worked.',
+        'alongside non-empty `entries` is normal. One dictionary failed, the rest worked.',
         'Check `entries` first.',
         '',
         'Values are marked `attested` (a dictionary said it) or `derived` (a rule worked',
@@ -94,7 +134,7 @@ function buildOpenApi(): unknown {
       license: { name: 'MIT' },
     },
     externalDocs: {
-      description: 'Written documentation — concepts, accuracy, sources',
+      description: 'Written documentation: concepts, accuracy, sources',
       url: 'https://github.com/k6w/ro-dexify-api/tree/main/docs',
     },
     servers: [{ url: '/' }],
@@ -116,7 +156,7 @@ function buildOpenApi(): unknown {
         get: {
           tags: ['Look up a word'],
           operationId: 'lookupWordFromSource',
-          summary: 'Look up a word — one dictionary only',
+          summary: 'Look up a word, one dictionary only',
           description: 'Same as above, restricted to a single provider.',
           parameters: [wordParam(), sourceParam(providers), ...viewParams()],
           responses: ok(),
@@ -126,7 +166,7 @@ function buildOpenApi(): unknown {
         get: {
           tags: ['Look up a word'],
           operationId: 'lookupWordV2',
-          summary: 'Look up a word — full shape (v2)',
+          summary: 'Look up a word, full shape (v2)',
           description:
             'The same lookup, returning the entry as the providers built it: a nested ' +
             'sense tree with typed nodes (`meaning`, `example`, `expression`, `locution`), ' +
@@ -141,7 +181,7 @@ function buildOpenApi(): unknown {
         get: {
           tags: ['Look up a word'],
           operationId: 'lookupWordFromSourceV2',
-          summary: 'Look up a word — full shape, one dictionary',
+          summary: 'Look up a word, full shape from one dictionary',
           parameters: [wordParam(), sourceParam(providers), ...viewParams()],
           responses: ok(),
         },
@@ -157,8 +197,8 @@ function buildOpenApi(): unknown {
             'Three tiers, best first: a **human recording** from Wikimedia Commons, ' +
             '**Piper** neural synthesis (`pnpm voices` to install), then **espeak-ng**, ' +
             'which always works.\n\n' +
-            'Synthesis uses a female voice by default. `?voice` affects synthesis only — ' +
-            'a human recording is whoever recorded that word.\n\n' +
+            'Synthesis uses a female voice by default. `?voice` affects synthesis only. ' +
+            'A human recording is whoever recorded that word.\n\n' +
             'Licence and attribution come back in the JSON and in `X-Audio-*` headers ' +
             '(percent-encoded, since HTTP headers are ASCII and IPA is not).',
           parameters: [
@@ -204,7 +244,7 @@ function buildOpenApi(): unknown {
           summary: 'Forvo recordings (needs an API key)',
           description:
             'Passthrough to Forvo. Requires `FORVO_API_KEY`; returns 503 without one.\n\n' +
-            'Most people want `/v1/tts` instead — it is free and needs no key.',
+            'Most people want `/v1/tts` instead, since it is free and needs no key.',
           parameters: [wordParam()],
           responses: ok(),
         },
@@ -216,7 +256,7 @@ function buildOpenApi(): unknown {
           operationId: 'conjugate',
           summary: 'Conjugate a verb',
           description:
-            'Accepts either citation form — `merge` and `a merge` are equivalent.\n\n' +
+            'Accepts either citation form: `merge` and `a merge` both work.\n\n' +
             '22 irregular verbs come from a table; the rest from a four-class rule engine. ' +
             '`source` says which.',
           parameters: [wordParam('verb')],
@@ -229,7 +269,7 @@ function buildOpenApi(): unknown {
           operationId: 'pluralize',
           summary: 'Pluralise a noun',
           description:
-            'Rule-based, so irregulars (`ou` → `ouă`, `oaie` → `oi`) are where it fails. ' +
+            'Rule-based, so irregulars (`ou` to `ouă`, `oaie` to `oi`) are where it fails. ' +
             'Prefer an attested plural from `/v2/word` when one exists.',
           parameters: [wordParam('noun')],
           responses: ok(),
@@ -242,7 +282,7 @@ function buildOpenApi(): unknown {
           operationId: 'search',
           summary: 'Search cached words',
           description:
-            'Searches words already in the local database — seeded, or cached by earlier ' +
+            'Searches words already in the local database, either seeded or cached by earlier ' +
             'lookups. It does not reach the internet.\n\n' +
             'Diacritics are folded, so `casa` finds `casă`. Every term is matched as a ' +
             'prefix.',
@@ -361,7 +401,7 @@ function viewParams() {
       name: 'merge',
       in: 'query',
       description:
-        'Combine every dictionary’s account of the same word into one entry. ' +
+        "Combine every dictionary's account of the same word into one entry. " +
         'Usually what you want for display.',
       schema: { type: 'boolean' },
     },

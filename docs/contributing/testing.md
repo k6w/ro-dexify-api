@@ -15,7 +15,7 @@ Parsers are tested against **recorded responses from the live sites**, in
 
 This matters more than it sounds. The parsers were originally tested against
 hand-written sample documents that resembled the real pages only loosely. Every
-test passed while every parser produced garbage against the actual sites — a
+test passed while every parser produced garbage against the actual sites, a
 DOOM lookup returned the headword `s.` and the inflection `art.`.
 
 Fixtures are recorded, never written by hand:
@@ -42,7 +42,7 @@ Chosen for the cases that break parsers, not happy paths:
 | `oaie`, `ou` | irregular plurals |
 | `copil` | relation-heavy entry |
 | `casa` | diacritic-less query |
-| `zzzqqq` | not a word — the 404 path |
+| `zzzqqq` | not a word: the 404 path |
 
 ## Test layout
 
@@ -96,7 +96,7 @@ DOOM still yields `casă` with stress and `case`/`casei`; DEXonline still ranks
 DEX '09 first with numbered senses and an etymology; Wiktionary still gives
 substantiv/feminin with IPA and 6+ declension forms.
 
-Runs nightly in CI, deliberately **not** in the PR gate — it makes real network
+Runs nightly in CI, deliberately **not** in the PR gate, it makes real network
 requests and a third-party outage must not block a merge.
 
 When it fails, re-record fixtures and read the diff:

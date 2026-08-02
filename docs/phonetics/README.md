@@ -5,7 +5,7 @@ How the API produces IPA, syllables and stress.
 ## Why compute anything
 
 Wiktionary is the only source that publishes IPA, and it covers a small fraction
-of the language — of the eight words in the test corpus, five had usable Romanian
+of the language, of the eight words in the test corpus, five had usable Romanian
 IPA.
 
 Romanian orthography is close to phonemic: given the spelling, the pronunciation
@@ -52,17 +52,17 @@ Mostly one-to-one. The ones that are not:
 | `x` | `ks` | |
 
 **The softening vowel disappears.** In `ceas`, the `e` only tells you the `c` is
-soft — it is not pronounced. `/t͡ʃas/`, not `/t͡ʃeas/`.
+soft, it is not pronounced. `/t͡ʃas/`, not `/t͡ʃeas/`.
 
 ### Diphthongs
 
-**Rising** — the first vowel becomes a glide, before an open vowel:
+**Rising**: the first vowel becomes a glide, before an open vowel:
 
 `ea → e̯a`  `oa → o̯a`  `ia → ja`  `ie → je`  `iu → ju`
 
 `floare` = `/ˈflo̯a.re/`
 
-**Falling** — a close vowel *after* a nucleus becomes the glide:
+**Falling**: a close vowel *after* a nucleus becomes the glide:
 
 `ou → ow`  `ui → uj`  `ai → aj`  `au → aw`
 
@@ -72,29 +72,29 @@ Getting this backwards is the classic mistake: treating every vowel-before-vowel
 as rising gives `/ˈo̯u/` for `ou`, which is wrong.
 
 **Identical adjacent vowels are hiatus, not a diphthong.** `știință` is
-`/ʃtiˈin.t͡sə/` — three syllables.
+`/ʃtiˈin.t͡sə/`: three syllables.
 
 ### Final `-i`
 
 A word-final `i` after a consonant is not a syllable. It palatalises:
 
-`lupi` = `/lupʲ/`, `pomi` = `/pomʲ/` — one syllable each.
+`lupi` = `/lupʲ/`, `pomi` = `/pomʲ/`: one syllable each.
 
 ### Initial `e`
 
-In a closed set of pronouns and forms of *a fi* — `eu, el, ea, ei, ele, este,
-era…` — initial `e` is `/je/`. Everywhere else it is `/e/`.
+In a closed set of pronouns and forms of *a fi*: `eu, el, ea, ei, ele, este,
+era…`: initial `e` is `/je/`. Everywhere else it is `/e/`.
 
 ## Syllabification
 
 Applied to phonemes, not letters, which avoids the traps: `ch` is one sound,
 `ea` is one syllable, final `-i` is none.
 
-- **V-CV** — one consonant between vowels joins the following syllable: `ca-să`
-- **VC-CV** — two consonants split…
-- **…except muta cum liquida** — a stop or fricative plus `l`/`r` stays together:
+- **V-CV**: one consonant between vowels joins the following syllable: `ca-să`
+- **VC-CV**: two consonants split…
+- **…except muta cum liquida**: a stop or fricative plus `l`/`r` stays together:
   `ta-blou`, not `tab-lou`
-- **VC-CCV** — with three or more, the first joins the preceding syllable
+- **VC-CCV**: with three or more, the first joins the preceding syllable
 
 A semivowel between two nuclei is the onset of the following syllable: `oaie`
 divides `oa-ie`.
@@ -112,8 +112,8 @@ Where a dictionary marks it, that is used:
 Both are parsed into `stressMark` (the lemma with an acute accent: `cásă`), and
 the transcription reports `stressOrigin: "attested"`.
 
-Otherwise the common pattern applies — penultimate for vowel-final words, final
-for consonant-final ones — and the result is `stressOrigin: "derived"`. Treat
+Otherwise the common pattern applies, penultimate for vowel-final words, final
+for consonant-final ones, and the result is `stressOrigin: "derived"`. Treat
 those as a guess.
 
 The mark is placed by character index, not by counting vowels: in `oaie` the

@@ -13,7 +13,7 @@ less /tmp/x.html
 
 Answer these before writing code:
 
-- Is there a JSON API? Prefer it — DEXonline's is far more reliable than its HTML.
+- Is there a JSON API? Prefer it. DEXonline's is far more reliable than its HTML.
 - What does `robots.txt` say? Any `Crawl-delay`?
 - Does it need a User-Agent? (Wikimedia 403s without one.)
 - What is in the **markup** rather than the prose? DOOM's stress is an underline
@@ -34,7 +34,7 @@ pnpm fixtures:refresh -- --source example
 
 ## 3. Write the failing test
 
-Assert what the fixture actually contains — exact forms, exact counts:
+Assert what the fixture actually contains, exact forms, exact counts:
 
 ```ts
 it('extracts exactly the real inflections', () => {
@@ -53,9 +53,9 @@ Reuse the primitives rather than reinventing them:
 
 | Need | Use |
 |---|---|
-| POS, gender, register from abbreviations | `extract/abbrev.ts` — `readGrammar()` |
+| POS, gender, register from abbreviations | `extract/abbrev.ts`: `readGrammar()` |
 | Splitting on `,`/`;` without breaking parentheses | `extract/segment.ts` |
-| Lemma vs homonym index | `lib/headword.ts` — `splitHomonym()` |
+| Lemma vs homonym index | `lib/headword.ts`: `splitHomonym()` |
 | DEXonline markup | `extract/internal-rep.ts` |
 | MediaWiki markup | `extract/wikitext.ts` |
 

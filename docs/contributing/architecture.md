@@ -85,7 +85,7 @@ rendered page. A secondary failure degrades to the primary result.
 is frozen. Providers without nested structure build a flat entry and `liftEntry`
 converts it, so they do not repeat the v2 boilerplate.
 
-A round-trip test asserts `entryToV1(liftEntry(x)) === x` for a flat entry —
+A round-trip test asserts `entryToV1(liftEntry(x)) === x` for a flat entry -
 that is what guarantees `/v1` cannot change shape.
 
 ## Storage

@@ -1,4 +1,4 @@
-# DLR / TEZAUR — unavailable
+# DLR / TEZAUR, unavailable
 
 **Dicționarul Limbii Române**, the Romanian Academy's thesaurus dictionary.
 
@@ -34,7 +34,7 @@ server-side parser to fetch. These paths were all checked:
 Enabling it would add a provider that fails on every request, putting a
 `PROVIDER_UPSTREAM_ERROR` in every response's `errors` for no benefit.
 
-`ENABLE_DLR=true` alone is not enough — an internal flag also has to be flipped,
+`ENABLE_DLR=true` alone is not enough, an internal flag also has to be flipped,
 and a test asserts it stays disabled. This is deliberate: the gate means "there
 is no endpoint", not "the operator has not opted in".
 
@@ -47,7 +47,7 @@ Two routes, both a real decision:
 
 1. **A documented API from solirom.** If one appears, point the provider at it
    and verify against recorded fixtures like every other source.
-2. **A headless browser.** Would work, but adds a browser as a dependency —
+2. **A headless browser.** Would work, but adds a browser as a dependency -
    a significant cost for one source.
 
 Until then the DLR corpus is out of reach. [DEXonline](dexonline.md) includes

@@ -3,13 +3,13 @@
 Two providers do no networking. They compute answers from rules, so they are
 instant, always available, and cached for a year.
 
-## `conjugare` — verb conjugation
+## `conjugare`: verb conjugation
 
 Provides `conjugation`. Backs [`/v1/conjugate`](../api/conjugation.md).
 
 Two mechanisms:
 
-1. **An irregular table** for the closed class of verbs no rule derives —
+1. **An irregular table** for the closed class of verbs no rule derives -
    `fi, avea, vrea, putea, vedea, face, merge, da, sta, lua, bea, ști, veni,
    spune, zice, duce, trece, scrie, pune, ține, rămâne, mânca`. Only the cells
    that differ are listed; the rest come from the rules.
@@ -25,7 +25,7 @@ form under [`?merge`](../api/word-lookup.md#merge).
 **Caveat:** an irregular verb outside the table is conjugated by rule and may be
 wrong. Romanian stem alternations (`a↔ă`, `e↔ea`, `d↔z`) are not fully modelled.
 
-## `pluralro` — pluralisation
+## `pluralro`: pluralisation
 
 Provides `pluralization`. Backs [`/v1/pluralize`](../api/pluralization.md).
 

@@ -1,6 +1,6 @@
 # Entry schema
 
-Every field of a `/v2` entry. `/v1` is a flattened subset — see
+Every field of a `/v2` entry. `/v1` is a flattened subset, see
 [Versions](../api/versions.md).
 
 ## Top level
@@ -26,9 +26,9 @@ Every field of a `/v2` entry. `/v1` is a flattened subset — see
 `numeral`, `prepoziție`, `conjuncție`, `interjecție`, `articol`, `locuțiune`,
 `expresie`, `unknown`.
 
-`unknown` means no source stated it — not that the word has no part of speech.
+`unknown` means no source stated it, not that the word has no part of speech.
 
-## `senses[]` — a tree
+## `senses[]`: a tree
 
 | Field | Type | Notes |
 |---|---|---|
@@ -43,7 +43,7 @@ Every field of a `/v2` entry. `/v1` is a flattened subset — see
 | `children` | sense[] | Nested senses, same shape |
 
 `relations`: `synonyms`, `antonyms`, `diminutives`, `augmentatives`,
-`hypernyms` — all string arrays, all present, possibly empty.
+`hypernyms`: all string arrays, all present, possibly empty.
 
 Only `meaning` and `sub-meaning` are meanings. An `example` child is a quotation
 of the parent; a `locution` or `expression` is a fixed phrase. Filter on `type`
@@ -66,7 +66,7 @@ Common tags: `nominative`, `accusative`, `genitive`, `dative`, `vocative`,
 Tags are a set, not a path: `["genitive","dative","plural","articulated"]`
 describes `caselor` completely. Romanian merges genitive and dative, hence both.
 
-Always check `origin` before trusting a form — see [Accuracy](accuracy.md).
+Always check `origin` before trusting a form, see [Accuracy](accuracy.md).
 
 ## `paradigm`
 

@@ -26,7 +26,7 @@ curl -s 'localhost:3000/v1/conjugate/merge' | jq
 
 ## Input
 
-Both citation forms work — `a fi` and `fi` give identical results. The `a`
+Both citation forms work: `a fi` and `fi` give identical results. The `a`
 particle is stripped.
 
 ```bash
@@ -49,8 +49,8 @@ curl -s 'localhost:3000/v1/conjugate/a%20fi' | jq '.forms["ind.prez.1sg"]'   # "
 
 ## `source`
 
-- `seeded` — from the DEXonline database dump. Real data.
-- `rules` — computed here.
+- `seeded`: from the DEXonline database dump. Real data.
+- `rules`: computed here.
 
 ## How forms are produced
 
@@ -73,7 +73,7 @@ ending: `-a` (I), `-ea` (II), `-e` (III), `-i`/`-î` (IV).
 ## Accuracy
 
 A regular verb is reliable. An irregular verb *not* in the table above will be
-conjugated by rule and may be wrong — Romanian has stem alternations
+conjugated by rule and may be wrong. Romanian has stem alternations
 (`a↔ă`, `e↔ea`, `d↔z`) that the rules do not fully model.
 
 If a word matters, cross-check against `/v2/word/<verb>`, where DOOM and

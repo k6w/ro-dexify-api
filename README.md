@@ -8,7 +8,7 @@ nightly job re-runs them against the real upstreams so a redesign is caught befo
 
 Every example below is real output from the running service, not an illustration.
 
-**📚 Full documentation is in [`docs/`](docs/README.md)** — one page per topic,
+**📚 Full documentation is in [`docs/`](docs/README.md)**: one page per topic,
 written for people who have not used an API reference before. This README is the
 tour; `docs/` is the detail.
 
@@ -21,7 +21,7 @@ pnpm dev
 ```
 
 `pnpm bootstrap --no-seed` runs migrations only; live lookups then fill the cache on demand. No
-MariaDB, no MySQL, no `sudo` — Node and SQLite only.
+MariaDB, no MySQL, no `sudo`: Node and SQLite only.
 
 ## Sources
 
@@ -30,11 +30,11 @@ MariaDB, no MySQL, no `sudo` — Node and SQLite only.
 | `doom` | Orthography, **stress**, syllabification, inflections, verb paradigms | on |
 | `dexonline` | Definitions, sense tree, etymology, synonyms/diminutives, cited examples, full declension | on |
 | `wiktionary` | Definitions, etymology, IPA, declension/conjugation templates | on |
-| `conjugare` | Verb conjugation — 22 irregular verbs by table, plus a 4-class rule engine | on (local) |
+| `conjugare` | Verb conjugation: 22 irregular verbs by table, plus a 4-class rule engine | on (local) |
 | `pluralro` | Rule-based pluralisation | on (local) |
-| `mdex` | Definitions — mirrors the same DEXonline corpus in poorer markup | **off by default** (`?sources=mdex`) |
+| `mdex` | Definitions: mirrors the same DEXonline corpus in poorer markup | **off by default** (`?sources=mdex`) |
 | `forvo` | Audio pronunciations | off unless `FORVO_API_KEY` is set |
-| `dlr` | Academic definitions | **unavailable** — see below |
+| `dlr` | Academic definitions | **unavailable**: see below |
 
 `dlr1.solirom.ro/index.php?cuv=<word>` returns HTTP 404 for every word. The site was rebuilt as a
 browser-only application that resolves words client-side, so there is no server-rendered page to
@@ -65,7 +65,7 @@ GET  /openapi.json   /docs
 ### `/v1` vs `/v2`
 
 `/v1` is frozen: senses are a flat list, and its response shape has not changed. `/v2` returns the
-entry as the providers built it — a recursive sense tree with typed nodes (`meaning`, `sub-meaning`,
+entry as the providers built it, a recursive sense tree with typed nodes (`meaning`, `sub-meaning`,
 `example`, `expression`, `locution`), per-sense `relations` and `sources`, `paradigm`,
 `homonymIndex`, inflection `origin`/`confidence`, and `source.authority`. `/v1` is produced from
 `/v2` by a flattening adapter.
@@ -119,7 +119,7 @@ unfiltered     →  8 entries   (8 cache hits)
 }
 ```
 
-DOOM entries have empty `senses` by design — it is an orthographic dictionary. Definitions come from
+DOOM entries have empty `senses` by design, it is an orthographic dictionary. Definitions come from
 `dexonline` and `wiktionary`.
 
 With `?merge`, `casă` collapses from 11 entries to 4, the first combining DOOM's stress and
@@ -137,7 +137,7 @@ inflections, DEXonline's senses and etymology, and Wiktionary's IPA and declensi
   "mime": "application/ogg",
   "bytes": 38135,
   "license": "Public domain",
-  "attribution": "Calusarul — via Wikimedia Commons (File:Ro-casă.oga)",
+  "attribution": "Calusarul, via Wikimedia Commons (File:Ro-casă.oga)",
   "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/9/94/Ro-cas%C4%83.oga",
   "ipa": "/ˈka.sə/",
   "syllabification": "ca-să",
@@ -147,15 +147,15 @@ inflections, DEXonline's senses and etymology, and Wiktionary's IPA and declensi
 
 Three tiers, best first:
 
-1. **A human recording** from Wikimedia Commons — `Ro-<word>.oga` plus the Lingua Libre corpus
+1. **A human recording** from Wikimedia Commons: `Ro-<word>.oga` plus the Lingua Libre corpus
    (24,088 Romanian files). Free, no API key. Licences differ per file, so licence and attribution
    are read per recording and travel with the audio.
-2. **Piper neural TTS** (`ro_RO-mihai-medium`) — optional, and **only for `?voice=male`**. Piper's
+2. **Piper neural TTS** (`ro_RO-mihai-medium`): optional, and **only for `?voice=male`**. Piper's
    catalogue has exactly one Romanian voice and it is male, so it is never used for the default
    female voice. It also needs a ~60 MB model and the Piper binary, so it runs only when both
    `PIPER_BIN` and `PIPER_MODEL` point at files that exist. `pnpm voices` fetches the model; the
    binary comes from [rhasspy/piper releases](https://github.com/rhasspy/piper/releases).
-3. **espeak-ng synthesis** (compiled to WebAssembly — no binary to install, no model to download),
+3. **espeak-ng synthesis** (compiled to WebAssembly, no binary to install, no model to download),
    always available, so the endpoint works on a fresh clone and never fails for an ordinary word. It
    is driven by the IPA below rather than by the spelling, so what gets spoken is the verified
    transcription.
@@ -169,7 +169,7 @@ Attribution is also returned in `X-Audio-Engine`, `X-Audio-License`, `X-Audio-At
 
 **Synthesis uses a female voice by default** (espeak `ro+f3`). `?voice=male` switches it, and
 `TTS_VOICE` overrides the variant outright (`ro+f1`…`ro+f5` female, `ro+m1`…`ro+m7` male). The choice
-affects synthesis only — a human recording is whoever recorded the word, and Commons publishes no
+affects synthesis only, a human recording is whoever recorded the word, and Commons publishes no
 speaker gender to filter on, so `casă` is read by Calusarul and `copil` by Andreea Teodoraa
 regardless. Use `?engine=espeak` for a consistent voice on every word.
 
@@ -177,7 +177,7 @@ regardless. Use `?engine=espeak` for a consistent voice on every word.
 `.cache/tts/`.
 
 **ro.wiktionary is not used for audio.** Of the eight recorded fixture words exactly one carried an
-`{{audio}}` template, and it pointed at `Fr-ou.ogg` — the French word.
+`{{audio}}` template, and it pointed at `Fr-ou.ogg`: the French word.
 
 ### IPA and syllabification
 
@@ -295,15 +295,15 @@ pnpm lint               biome check
 
 ## Licensing & attribution
 
-- **DOOM 3** — CC BY-NC-SA 4.0, non-commercial only. Institutul de Lingvistică „Iorgu Iordan –
+- **DOOM 3**: CC BY-NC-SA 4.0, non-commercial only. Institutul de Lingvistică „Iorgu Iordan –
   Al. Rosetti".
-- **DEXonline** — GPL data; the seed dump is downloaded at setup and never committed.
-- **Wiktionary RO** — CC BY-SA 4.0.
-- **Wikimedia Commons audio** — per file; public domain through CC BY-SA 4.0, returned with each
+- **DEXonline**: GPL data; the seed dump is downloaded at setup and never committed.
+- **Wiktionary RO**: CC BY-SA 4.0.
+- **Wikimedia Commons audio**: per file; public domain through CC BY-SA 4.0, returned with each
   response.
-- **espeak-ng** — GPL-3.0; the synthesised audio itself is offered as CC0.
-- **Piper** (`ro_RO-mihai-medium`) — MIT, when the optional tier is enabled.
-- **Forvo** — proprietary, per-clip credit to the speaker.
+- **espeak-ng**: GPL-3.0; the synthesised audio itself is offered as CC0.
+- **Piper** (`ro_RO-mihai-medium`): MIT, when the optional tier is enabled.
+- **Forvo**: proprietary, per-clip credit to the speaker.
 
 Per-provider attribution travels in every response in `entry.source.attribution`, and per-recording
 attribution in the `/v1/tts` response and headers.

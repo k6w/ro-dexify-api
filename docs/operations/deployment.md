@@ -32,7 +32,7 @@ re-fetches everything, which is slow and impolite to the upstream sites.
 
 `better-sqlite3` compiles a native module. pnpm 10+ blocks postinstall scripts
 by default; `pnpm-workspace.yaml` lists the allowed builds. If you see
-*"Could not locate the bindings file"*, the build was skipped — run
+*"Could not locate the bindings file"*, the build was skipped, run
 `pnpm install` again, or `pnpm approve-builds`.
 
 ## Seeding in production
@@ -52,7 +52,7 @@ livenessProbe:
 ```
 
 `/v1/healthz` does not touch the network, so an upstream outage cannot fail it.
-It reports `degraded` when a circuit breaker is open — the service is still
+It reports `degraded` when a circuit breaker is open, the service is still
 usable then, so do not treat `degraded` as a restart signal.
 
 ## Logging
@@ -77,7 +77,7 @@ LOG_LEVEL=debug   # includes upstream fetches
 
 The service is stateless apart from SQLite. For more than one instance, either
 give each its own database file (they will each fill their own cache) or put
-them behind a shared volume — SQLite in WAL mode tolerates multiple readers and
+them behind a shared volume. SQLite in WAL mode tolerates multiple readers and
 one writer.
 
 ## Upstream drift

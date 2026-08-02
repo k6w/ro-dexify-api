@@ -4,10 +4,10 @@ The words used throughout these docs and in every response.
 
 ## Word, headword, lemma
 
-- **Word** — what you asked for, exactly as you typed it.
-- **Lemma** — the dictionary form of a word. `case`, `casei` and `casele` are
+- **Word**: what you asked for, exactly as you typed it.
+- **Lemma**: the dictionary form of a word. `case`, `casei` and `casele` are
   all forms of the lemma `casă`.
-- **Headword** — the lemma as this API keys it: lowercased and Unicode-normalised.
+- **Headword**: the lemma as this API keys it: lowercased and Unicode-normalised.
   `displayHeadword` keeps the original capitalisation, which is why you will see
   `CASĂ` from DEX and `casă` from DOOM for the same word.
 
@@ -16,7 +16,7 @@ The words used throughout these docs and in every response.
 One dictionary's account of one word. A lookup returns **several entries**,
 because several dictionaries have something to say.
 
-An entry is not a word — it is *a source's description of a word*. Two entries
+An entry is not a word, it is *a source's description of a word*. Two entries
 for `casă` from DEX '09 and DOOM 3 are both correct and differ in what they
 cover: DOOM has stress and inflections but no definitions, DEX has definitions
 but no stress.
@@ -44,7 +44,7 @@ senses of one word.
 
 A grammatical form of the lemma: `case` (plural), `casei` (genitive/dative),
 `casele` (plural articulated). Each carries `tags` naming what it is, plus
-`origin` and `confidence` — see [Accuracy](data/accuracy.md).
+`origin` and `confidence`: see [Accuracy](data/accuracy.md).
 
 Romanian nouns take a suffixed definite article, so `casa` ("the house") is an
 inflected form, not a separate word. That is what the `articulated` tag means.
@@ -59,9 +59,9 @@ the same data when a source publishes a full table.
 
 ## Provider vs source
 
-- **Provider** — a piece of this software that talks to one website
+- **Provider**: a piece of this software that talks to one website
   (`doom`, `dexonline`, `wiktionary`…). What `?sources=` selects.
-- **Source / contributing dictionary** — the actual dictionary a definition came
+- **Source / contributing dictionary**: the actual dictionary a definition came
   from (`DEX '09`, `MDA2`, `Scriban`). What `?dict=` selects.
 
 One provider can return many sources: DEXonline aggregates 32 dictionaries.
@@ -70,8 +70,8 @@ This trips people up constantly, so: `?sources=dexonline&dict=DEX '09` means
 
 ## Attested vs derived
 
-- **Attested** — a dictionary said this.
-- **Derived** — a rule in this software worked it out.
+- **Attested**: a dictionary said this.
+- **Derived**: a rule in this software worked it out.
 
 Both are useful; conflating them is not. Every field that can be either says
 which. [Accuracy](data/accuracy.md) covers this properly.
@@ -85,10 +85,10 @@ entries merge. See [Ranking](data/ranking.md).
 
 ## IPA, stress, syllabification
 
-- **IPA** — the International Phonetic Alphabet: `/ˈka.sə/`. One symbol, one sound.
-- **Stress** — which syllable is emphasised. The `ˈ` mark goes *before* the
+- **IPA**: the International Phonetic Alphabet: `/ˈka.sə/`. One symbol, one sound.
+- **Stress**: which syllable is emphasised. The `ˈ` mark goes *before* the
   stressed syllable. Romanian stress is not predictable from spelling, which is
   why it is taken from a dictionary where possible.
-- **Syllabification** — where the word divides: `ca-să`.
+- **Syllabification**: where the word divides: `ca-să`.
 
 See [Phonetics](phonetics/README.md).

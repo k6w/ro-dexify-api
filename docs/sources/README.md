@@ -14,22 +14,22 @@ Where the data comes from. One page per provider.
 | `dlr` | Academic definitions | **unavailable** | [DLR](dlr.md) |
 
 Pronunciation audio comes from Wikimedia Commons, which is not a provider in
-this sense — see [Pronunciation](../api/pronunciation.md).
+this sense, see [Pronunciation](../api/pronunciation.md).
 
 ## How a provider works
 
 Every network provider follows the same path:
 
-1. **Memory cache** — 5 minutes.
-2. **SQLite cache** — per-provider TTL (below). Still fresh? Return it.
-3. **robots.txt** — checked and cached 24 h.
-4. **Rate limit** — per host, so parallel lookups queue rather than flood.
-5. **Circuit breaker** — 5 consecutive failures opens it for 60 s.
+1. **Memory cache**: 5 minutes.
+2. **SQLite cache**: per-provider TTL (below). Still fresh? Return it.
+3. **robots.txt**: checked and cached 24 h.
+4. **Rate limit**: per host, so parallel lookups queue rather than flood.
+5. **Circuit breaker**: 5 consecutive failures opens it for 60 s.
 6. **Fetch**, with `ETag`/`If-Modified-Since` when a previous copy exists.
 7. **Parse** into the entry shape.
 8. **Store** and return.
 
-A failure at any step yields a provider error inside a `200` response — never a
+A failure at any step yields a provider error inside a `200` response, never a
 failed request. See [Errors](../api/errors.md).
 
 ## Cache lifetimes

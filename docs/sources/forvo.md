@@ -11,7 +11,7 @@ Crowd-sourced human pronunciation recordings.
 ## You probably want `/v1/tts` instead
 
 [`/v1/tts`](../api/pronunciation.md) gives human recordings from Wikimedia
-Commons — free, no key, no quota, permissively licensed. Forvo is only worth
+Commons, free, no key, no quota, permissively licensed. Forvo is only worth
 configuring if you need a word Commons does not cover.
 
 ## Setup
@@ -38,7 +38,7 @@ through your allowance.
 ## What it gives
 
 `pronunciations[]` entries with `audioUrl`, `audioMime` and `audioAttribution`.
-No definitions — it is an audio source.
+No definitions, it is an audio source.
 
 ## Licensing
 

@@ -19,7 +19,7 @@ curl -s 'localhost:3000/v1/healthz' | jq
 | `db` | `ok` if the database answers |
 | `breakers` | Providers whose circuit breaker is not closed |
 
-`degraded` means the service is running but something is unhappy — usually one
+`degraded` means the service is running but something is unhappy, usually one
 or more open breakers. Lookups still work with the remaining sources.
 
 Suitable for a container liveness probe. It does not touch the network, so it

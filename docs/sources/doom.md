@@ -1,11 +1,11 @@
 # DOOM 3
 
-**Dicționarul ortografic, ortoepic și morfologic al limbii române** — the
+**Dicționarul ortografic, ortoepic și morfologic al limbii române**: the
 normative Romanian orthographic dictionary, published by the Institutul de
 Lingvistică „Iorgu Iordan – Al. Rosetti".
 
 - Site: <https://doom.lingv.ro>
-- Licence: **CC BY-NC-SA 4.0 — non-commercial only**
+- Licence: **CC BY-NC-SA 4.0, non-commercial only**
 - Cache: 30 days · Rate limit: 1500 ms
 - Provider id: `doom`
 
@@ -15,13 +15,13 @@ The authority on **how a word is written, stressed and inflected**:
 
 - stress (which vowel is emphasised)
 - syllabification, where non-obvious
-- inflected forms — declensions and verb paradigms
+- inflected forms, declensions and verb paradigms
 - part of speech and gender
 
 ## What it does not give
 
 **Definitions.** DOOM entries always have `senses: []`. That is correct, not a
-bug — it is an orthographic dictionary. Meanings come from
+bug, it is an orthographic dictionary. Meanings come from
 [DEXonline](dexonline.md) or [Wiktionary](wiktionary.md).
 
 ## Example
@@ -53,7 +53,7 @@ the prose:
 
 - the lemma is the first bold span; a `<sup>` carries the homonym index
 - each inflected form is its own italic span
-- **the stressed vowel is wrapped in an underline span** — this is the only
+- **the stressed vowel is wrapped in an underline span**: this is the only
   place DOOM states stress, and flattening the HTML to text destroys it
 - syllabification is a `title` attribute on a tooltip span
 
@@ -66,7 +66,7 @@ casă s. f., g.-d. art. casei; pl. case (dar: Casa Corpului Didactic, …)
 
 That parenthetical is a note about proper nouns, not a list of plurals.
 
-DOOM also elides a repeated tense — `perf. s. 1 sg. mersei, 1 pl. merserăm` —
+DOOM also elides a repeated tense: `perf. s. 1 sg. mersei, 1 pl. merserăm` -
 so mood and tense carry forward into bare person/number labels.
 
 ## Matching

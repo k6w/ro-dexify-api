@@ -1,6 +1,6 @@
 # DEXonline
 
-The largest free Romanian dictionary aggregator — 32 dictionaries in one place,
+The largest free Romanian dictionary aggregator, 32 dictionaries in one place,
 from the current DEX '09 to Scriban (1939).
 
 - Site: <https://dexonline.ro>
@@ -24,9 +24,9 @@ The richest source here:
 
 A cache miss fetches **two** documents, 2 seconds apart:
 
-1. **`/definitie/<word>/json`** — the structured API. Definitions, sense
+1. **`/definitie/<word>/json`**: the structured API. Definitions, sense
    numbering, grammatical labels, stress.
-2. **`/definitie/<word>`** — the rendered page. Relations, cited examples and
+2. **`/definitie/<word>`**: the rendered page. Relations, cited examples and
    the declension table, which the JSON does not carry.
 
 Cold lookups therefore take ~2.5 s. Both land in one cache entry, so cache hits
@@ -43,7 +43,7 @@ curl -s "localhost:3000/v1/word/casă?sources=dexonline&dict=DEX '09"
 ```
 
 Because 120 definitions for one word is unusable raw, results are ranked by
-authority, deduplicated and capped — see [Ranking](../data/ranking.md).
+authority, deduplicated and capped, see [Ranking](../data/ranking.md).
 
 ## DOOM inside DEXonline
 
@@ -64,15 +64,15 @@ The JSON carries DEXonline's own markup in `internalRep`:
 
 | Token | Meaning |
 |---|---|
-| `@…@` | bold — headword, and sense numbers `@1.@` |
-| `$…$` | italic — inflections, expressions |
-| `#…#` | abbreviation — `#s. f.#`, `#Reg.#` |
+| `@…@` | bold: headword, and sense numbers `@1.@` |
+| `$…$` | italic: inflections, expressions |
+| `#…#` | abbreviation: `#s. f.#`, `#Reg.#` |
 | `'` | **tonic accent**, before the stressed vowel |
 | `^n` | homonym index |
 | `*` / `**` | locution (◊) / sub-sense (♦) |
 
 The rendered page supplies the meaning tree (`ul.meaningTree`) and the paradigm
-tables, which are read as a proper HTML grid with `rowspan`/`colspan` — a verb
+tables, which are read as a proper HTML grid with `rowspan`/`colspan`: a verb
 table is several stacked blocks, each with its own header row.
 
 ## Caveats

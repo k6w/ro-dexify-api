@@ -28,7 +28,7 @@ curl -s 'localhost:3000/v1/tts/casă?meta' | jq
   "mime": "application/ogg",
   "bytes": 38135,
   "license": "Public domain",
-  "attribution": "Calusarul — via Wikimedia Commons (File:Ro-casă.oga)",
+  "attribution": "Calusarul, via Wikimedia Commons (File:Ro-casă.oga)",
   "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/9/94/Ro-cas%C4%83.oga",
   "audioUrl": "/v1/tts/cas%C4%83",
   "ipa": "/ˈka.sə/",
@@ -50,7 +50,7 @@ make two requests.
 
 Three tiers, best first. The `engine` field tells you which one answered.
 
-### 1. `commons` — a human recording
+### 1. `commons`: a human recording
 
 A real person, from [Wikimedia Commons](https://commons.wikimedia.org),
 including the [Lingua Libre](https://lingualibre.org) corpus of 24,088 Romanian
@@ -59,11 +59,11 @@ recordings. Free, no API key.
 This is the best audio available and is always preferred. Two naming patterns
 are searched: `Ro-<word>.oga` and `LL-Q7913 (ron)-<speaker>-<word>.wav`.
 
-**Licences vary per file** — `casă` is public domain, most Lingua Libre files
-are CC BY-SA 4.0 — so licence and attribution are read per recording and
+**Licences vary per file**: `casă` is public domain, most Lingua Libre files
+are CC BY-SA 4.0, so licence and attribution are read per recording and
 returned with it. If you republish the audio, honour them.
 
-### 2. `piper` — neural synthesis, optional
+### 2. `piper`: neural synthesis, optional
 
 Natural-sounding, but Piper's catalogue has exactly one Romanian voice
 (`ro_RO-mihai-medium`) and it is **male**. It is therefore used only for
@@ -74,7 +74,7 @@ md5 `45f4253916c93d3d05ad3fe1b07ea4f3`, in
 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main/ro/ro_RO/mihai/medium).
 It is the only Romanian voice in that catalogue.
 
-One command installs everything — model, runtime and a self-test:
+One command installs everything, model, runtime and a self-test:
 
 ```bash
 pnpm voices
@@ -100,15 +100,15 @@ export PIPER_DISABLE=1        # skip Piper entirely
 ```
 
 An explicitly set path that does not exist reads as "not configured" rather
-than falling back to a discovered one — a typo should not quietly give you a
+than falling back to a discovered one, a typo should not quietly give you a
 different voice. When no engine is pinned, an unavailable Piper falls through to
 espeak and never breaks pronunciation.
 
-### 3. `espeak` — always available
+### 3. `espeak`: always available
 
 [espeak-ng](https://github.com/espeak-ng/espeak-ng) compiled to WebAssembly. No
 binary to install, no model to download, works identically everywhere. It sounds
-synthetic, but it is phonetically correct — and it is fed
+synthetic, but it is phonetically correct, and it is fed
 [our own IPA](../phonetics/README.md) rather than the spelling, so it speaks the
 transcription this API verified rather than guessing at Romanian orthography.
 
@@ -125,13 +125,13 @@ curl -s 'localhost:3000/v1/tts/casă?engine=espeak&voice=male'  # male
 
 | Want | Do |
 |---|---|
-| Best possible audio | default — you get a human where one exists |
+| Best possible audio | default: you get a human where one exists |
 | **A woman's voice on every word** | `?engine=espeak` |
 | A man's voice | `?voice=male` |
 | A different female timbre | `TTS_VOICE=ro+f5` (env) |
 
 `?voice` affects **synthesis only**. A human recording is whoever recorded that
-word — Commons publishes no speaker gender, so there is nothing to filter on and
+word. Commons publishes no speaker gender, so there is nothing to filter on and
 this API does not guess it from names. `casă` is read by Calusarul and `copil`
 by Andreea Teodoraa regardless of `?voice`.
 
@@ -139,7 +139,7 @@ by Andreea Teodoraa regardless of `?voice`.
 skips the human tier entirely.
 
 espeak variants: `ro+f1`…`ro+f5` female, `ro+m1`…`ro+m7` male. They share the
-phoneme set, so only the timbre changes — the IPA spoken is identical. Set
+phoneme set, so only the timbre changes, the IPA spoken is identical. Set
 `TTS_VOICE` to any of them to override the default outright.
 
 ## Caching
@@ -154,4 +154,4 @@ needs a paid API key (`FORVO_API_KEY`). Without a key the provider is disabled
 and the endpoint returns `PROVIDER_DISABLED`. Forvo audio is proprietary and
 requires per-clip credit to the speaker.
 
-Most people want `/v1/tts` instead — it is free and needs no key.
+Most people want `/v1/tts` instead, it is free and needs no key.

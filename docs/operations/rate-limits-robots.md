@@ -17,7 +17,7 @@ Per host, not per request. Parallel lookups queue rather than flood.
 | `forvo` | 200 ms | 2 |
 | `conjugare`, `pluralro` | 0 | unlimited (local) |
 
-DEXonline's 2000 ms is its `robots.txt` `Crawl-delay: 2` — not a guess.
+DEXonline's 2000 ms is its `robots.txt` `Crawl-delay: 2`: not a guess.
 
 **Please do not lower these.** Generous caching (see
 [Caching](caching.md)) means they rarely matter in practice.
@@ -37,7 +37,7 @@ Those rules stop search engines indexing dynamic duplicates of wiki content;
 `api.php` is the interface Wikimedia publishes for programmatic access and
 rate-limits itself. Using a documented API is not crawling.
 
-The exemption is narrow — that one endpoint — and the User-Agent and rate limit
+The exemption is narrow, that one endpoint, and the User-Agent and rate limit
 still apply. It is the only one, and a test asserts that every page-scraping
 provider stays on the default crawler policy.
 
@@ -57,7 +57,7 @@ my-app/1.0 (+https://example.com/contact; non-commercial)
 ```
 
 **Wikimedia returns 403 without a descriptive User-Agent.** This is enforced,
-not advisory — a generic or missing UA means every Wikimedia request fails.
+not advisory, a generic or missing UA means every Wikimedia request fails.
 
 ## Circuit breakers
 

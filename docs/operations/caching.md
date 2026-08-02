@@ -8,19 +8,19 @@ Four layers. Understanding them explains most latency questions.
 |---|---|---|---|
 | Memory (LRU) | Per provider + word | 5 min | Restart |
 | SQLite `lookups` | Per provider + word | Per-provider TTL | `?refresh`, deleting the DB |
-| HTTP validators | ETag / Last-Modified | Until upstream changes | — |
+| HTTP validators | ETag / Last-Modified | Until upstream changes |: |
 | Audio files | `.cache/tts/` | Forever | `rm -rf .cache/tts` |
 
-Per-provider TTLs are listed in [Sources](../sources/README.md#cache-lifetimes) —
+Per-provider TTLs are listed in [Sources](../sources/README.md#cache-lifetimes) -
 30 days for DOOM, 7 for DEXonline, 3 for Wiktionary, a year for the local ones.
 
 ## A lookup, step by step
 
-1. **Memory** — hit? return.
-2. **SQLite** — row present and unexpired? return.
-3. **robots.txt** (cached 24 h) — disallowed? provider error.
-4. **Rate limit** — wait for this host's turn.
-5. **Circuit breaker** — open? skip the provider.
+1. **Memory**: hit? return.
+2. **SQLite**: row present and unexpired? return.
+3. **robots.txt** (cached 24 h): disallowed? provider error.
+4. **Rate limit**: wait for this host's turn.
+5. **Circuit breaker**: open? skip the provider.
 6. **Fetch**, sending `If-None-Match` / `If-Modified-Since` if a copy exists.
    A `304` refreshes the TTL without re-parsing.
 7. **Parse**, store, return.

@@ -93,11 +93,11 @@ Open <http://localhost:3000/docs> in a browser for the interactive reference.
 `casă` contains `ă`, which is not an ASCII character. `curl` handles it, but if
 a tool complains, percent-encode it: `cas%C4%83`.
 
-You can also just type it without diacritics — `casa` finds `casă` — see
+You can also just type it without diacritics: `casa` finds `casă`: see
 [Search](api/search.md).
 
 ## What next
 
-- [Concepts](concepts.md) — the vocabulary used everywhere else
-- [Word lookup](api/word-lookup.md) — the main endpoint, in full
-- [Troubleshooting](operations/troubleshooting.md) — if something above failed
+- [Concepts](concepts.md): the vocabulary used everywhere else
+- [Word lookup](api/word-lookup.md): the main endpoint, in full
+- [Troubleshooting](operations/troubleshooting.md): if something above failed

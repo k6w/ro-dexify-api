@@ -24,27 +24,27 @@ curl -s 'localhost:3000/v2/word/casă?merge' \
 
 ## What is attested
 
-- **Definitions, senses, examples, citations** — always from a dictionary. This
+- **Definitions, senses, examples, citations**: always from a dictionary. This
   API never writes a definition.
-- **Etymology** — from a dictionary.
-- **Relations** (synonyms, diminutives, …) — from DEXonline's curated tree.
-- **Inflections from DOOM, DEXonline or Wiktionary** — published forms.
-- **Paradigm tables** — DEXonline's own tables, read as a grid.
-- **Stress** — DOOM marks the stressed vowel; DEXonline uses an apostrophe.
+- **Etymology**: from a dictionary.
+- **Relations** (synonyms, diminutives, …): from DEXonline's curated tree.
+- **Inflections from DOOM, DEXonline or Wiktionary**: published forms.
+- **Paradigm tables**: DEXonline's own tables, read as a grid.
+- **Stress**: DOOM marks the stressed vowel; DEXonline uses an apostrophe.
   Where either is present, `stressOrigin` is `"attested"`.
-- **IPA from Wiktionary** — where an editor wrote one.
+- **IPA from Wiktionary**: where an editor wrote one.
 
 ## What is derived
 
 - **IPA for words no source transcribes.** Romanian spelling is near-phonemic,
   so a transcription is computed. Verified against every IPA in the test corpus
-  — see [Phonetics](../phonetics/README.md) — but it is a rule, not a record.
+ : see [Phonetics](../phonetics/README.md): but it is a rule, not a record.
 - **Syllabification**, unless DOOM published it.
 - **Stress with `stressOrigin: "derived"`.** Romanian stress is not predictable
   from spelling. The common pattern is applied and marked low confidence. **This
   is the single least reliable thing the API produces.**
 - **`/v1/pluralize` output** and **`/v1/conjugate` where `source` is `rules`**.
-- **Conjugations for irregular verbs outside the table** —
+- **Conjugations for irregular verbs outside the table** -
   see [Conjugation](../api/conjugation.md).
 
 ## Attested beats derived
@@ -71,9 +71,9 @@ because Șăineanu was wrong for its time.
 - **Derived stress is a guess** where no dictionary marks it.
 - **Rule-based conjugation** misses stem alternations for irregular verbs not in
   the table.
-- **Search only covers cached entries** — see [Search](../api/search.md).
+- **Search only covers cached entries**: see [Search](../api/search.md).
 - **Human audio is whoever recorded it.** Commons has no speaker-gender
-  metadata, so `?voice` cannot filter it — see
+  metadata, so `?voice` cannot filter it, see
   [Pronunciation](../api/pronunciation.md#choosing-a-voice).
 
 ## Checking for yourself

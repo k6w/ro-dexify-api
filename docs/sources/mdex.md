@@ -11,7 +11,7 @@ The mobile mirror of DEXonline.
 ## Why it is off
 
 It mirrors the same corpus as [`dexonline`](dexonline.md) in markup that carries
-strictly less information — no sense tree, no relations, no paradigm, no
+strictly less information, no sense tree, no relations, no paradigm, no
 citations. Enabling it by default duplicated every definition and doubled the
 request budget for no extra coverage.
 
@@ -41,7 +41,7 @@ Each definition is a `.mydef` block:
 
 Three things need care:
 
-- the headword has the tonic accent, homonym index and a comma fused on —
+- the headword has the tonic accent, homonym index and a comma fused on -
   `CÁSĂ1,` becomes lemma `CÁSĂ` with `homonymIndex: 1`
 - the "Copy to clipboard" button repeats the whole definition and must be
   removed before reading the text

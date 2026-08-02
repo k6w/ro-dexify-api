@@ -57,7 +57,7 @@ a flattening adapter.
 ```
 
 `/v1` folded the example and the locution into one `examples` list, promoted the
-sub-meaning to a top-level sense, and dropped the diminutives entirely — there
+sub-meaning to a top-level sense, and dropped the diminutives entirely, there
 is nowhere in the v1 shape to put them.
 
 ## What only `/v2` has

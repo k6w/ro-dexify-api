@@ -37,10 +37,10 @@ sites tell you apart from a scraper.
 
 | Variable | Default | Notes |
 |---|---|---|
-| `TTS_VOICE` | — | espeak variant override, e.g. `ro+f5` |
+| `TTS_VOICE` |: | espeak variant override, e.g. `ro+f5` |
 | `PIPER_BIN` | auto | Path to the Piper binary. `pnpm voices` installs one and it is found automatically. |
 | `PIPER_MODEL` | auto | Path to `ro_RO-mihai-medium.onnx`, likewise |
-| `PIPER_DISABLE` | — | Set to `1` to skip the Piper tier entirely |
+| `PIPER_DISABLE` |: | Set to `1` to skip the Piper tier entirely |
 
 Synthesis is female (`ro+f3`) unless overridden. Piper is used only for
 `?voice=male` and only when both paths exist. See
@@ -50,9 +50,9 @@ Synthesis is female (`ro+f3`) unless overridden. Piper is used only for
 
 | Variable | Default | Notes |
 |---|---|---|
-| `FORVO_API_KEY` | — | Enables the `forvo` provider |
+| `FORVO_API_KEY` |: | Enables the `forvo` provider |
 | `FORVO_DAILY_QUOTA` | `500` | Requests per day |
-| `ENABLE_DLR` | `false` | **Has no effect** — DLR's endpoint no longer exists |
+| `ENABLE_DLR` | `false` | **Has no effect**: DLR's endpoint no longer exists |
 
 ## Seeding
 
@@ -76,5 +76,5 @@ LOG_LEVEL=info
 TTS_VOICE=ro+f3
 ```
 
-Invalid configuration fails at startup with a message naming the variable —
+Invalid configuration fails at startup with a message naming the variable -
 it is validated, not silently defaulted.

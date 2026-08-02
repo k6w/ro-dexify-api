@@ -30,7 +30,7 @@ generate client libraries, populate Postman, or drive tests.
 `/docs` renders that document as a browsable page. Expand an endpoint, fill in a
 parameter, press the button, see the real response.
 
-You do not need either to use this API — curl works fine — but `/docs` is the
+You do not need either to use this API, curl works fine, but `/docs` is the
 fastest way to see what a parameter is called.
 
 Both are generated from the code, so they cannot drift out of date. A test
@@ -49,10 +49,10 @@ Word lookups always return this envelope:
 }
 ```
 
-- **`entries`** — the results. Possibly empty.
-- **`cache`** — how many entries came from cache vs a fresh fetch. Useful for
+- **`entries`**: the results. Possibly empty.
+- **`cache`**: how many entries came from cache vs a fresh fetch. Useful for
   understanding latency; ignorable otherwise.
-- **`errors`** — providers that failed. **This is normally empty.** A non-empty
+- **`errors`**: providers that failed. **This is normally empty.** A non-empty
   `errors` with a non-empty `entries` means some sources worked and some did
   not: the response is still usable. See [Errors](errors.md).
 
@@ -73,5 +73,5 @@ Percent-encode diacritics if your tooling needs it: `cas%C4%83` is `casă`.
 ## Rate limiting
 
 The API rate-limits *itself* against upstream dictionaries so it stays a polite
-client — see [Rate limits & robots](../operations/rate-limits-robots.md). There
+client, see [Rate limits & robots](../operations/rate-limits-robots.md). There
 is also an inbound limit (`RATE_LIMIT_PER_MIN`, default 60/min per client).

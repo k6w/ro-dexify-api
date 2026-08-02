@@ -4,7 +4,7 @@ A Romanian dictionary API. You give it a word; it gives you definitions,
 grammar, pronunciation and audio, drawn from several dictionaries and normalised
 into one shape.
 
-**New here? Read [Getting started](getting-started.md) first** — it gets you a
+**New here? Read [Getting started](getting-started.md) first**: it gets you a
 running server and a first response in about five minutes.
 
 ## Start here
@@ -27,7 +27,7 @@ running server and a first response in about five minutes.
 The server also serves an interactive API reference at `/docs` and a machine
 readable description at `/openapi.json`.
 
-That page is generated from the code, so it is always in sync — but it is a
+That page is generated from the code, so it is always in sync, but it is a
 *reference*, not an explanation. It tells you that `/v1/word/{word}` takes a
 `dict` parameter; it does not tell you why you would want one. **These pages are
 the explanation.** Use both: read here to understand, use `/docs` to look up a
@@ -36,7 +36,7 @@ parameter name quickly.
 If you have never used a page like `/docs` before: it lists every URL the API
 answers, what you can send it, and what comes back. You can expand any entry and
 press a button to send a real request from your browser. Nothing there can break
-anything — every endpoint in this API is read-only.
+anything, every endpoint in this API is read-only.
 
 ## The short version
 

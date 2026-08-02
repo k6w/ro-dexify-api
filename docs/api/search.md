@@ -28,7 +28,7 @@ curl -s 'localhost:3000/v1/search?q=locuință&limit=3' | jq
 ## It only searches what you already have
 
 Search reads the local database. A word nobody has looked up and the seed did
-not include will not be found — search does not go to the internet.
+not include will not be found, search does not go to the internet.
 
 To fill the index: run `pnpm bootstrap --lite` (or `--full`), and/or look words
 up via `/v1/word/…`, which caches as it goes.
@@ -68,7 +68,7 @@ A query that reduces to nothing returns an empty result, never a 500.
 
 ## `score`
 
-BM25 relevance from SQLite. **Lower is better** — the values are negative and
+BM25 relevance from SQLite. **Lower is better**: the values are negative and
 more-negative means more relevant. Results are already ordered, so you can
 usually ignore it.
 

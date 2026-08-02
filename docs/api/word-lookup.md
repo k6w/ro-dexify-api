@@ -8,7 +8,7 @@ GET /v2/word/:word
 ```
 
 `/v1` and `/v2` take identical parameters and differ only in the shape of each
-entry — see [Versions](versions.md). Examples here use `/v1`.
+entry, see [Versions](versions.md). Examples here use `/v1`.
 
 ## Simplest case
 
@@ -54,9 +54,9 @@ curl -s 'localhost:3000/v1/word/casă?sources=doom,wiktionary'
 Valid ids: `doom`, `dexonline`, `wiktionary`, `mdex`, `forvo`, `dlr`,
 `conjugare`, `pluralro`. `/v1/sources` lists which are enabled.
 
-Some are off by default — `mdex` duplicates DEXonline, `forvo` needs a key,
+Some are off by default: `mdex` duplicates DEXonline, `forvo` needs a key,
 `dlr` is unavailable. Naming one in `?sources=` enables it for that request
-(except `dlr`, which cannot work — see [DLR](../sources/dlr.md)).
+(except `dlr`, which cannot work, see [DLR](../sources/dlr.md)).
 
 ### `dict`
 
@@ -94,7 +94,7 @@ can return six entries.
 
 ### `orthographic`
 
-Some entries carry inflections but no definitions — DOOM's copy inside
+Some entries carry inflections but no definitions. DOOM's copy inside
 DEXonline, for instance. They rank highest by authority, so if included by
 default they would push every actual definition off the front. They are excluded
 unless you ask.
@@ -125,7 +125,7 @@ curl -s 'localhost:3000/v2/word/casă?merge' | jq '.entries[0] | {
 }
 ```
 
-Eleven entries become four — one per distinct word. DOOM's stress, DEXonline's
+Eleven entries become four, one per distinct word. DOOM's stress, DEXonline's
 senses and Wiktionary's IPA end up on one object, with `contributors` recording
 who supplied what.
 
@@ -184,7 +184,7 @@ Practical consequence: filtering costs nothing. Ask for exactly what you need.
 
 An unknown word returns `200` with an empty or near-empty `entries`, and often a
 `PROVIDER_UPSTREAM_ERROR` in `errors` from a source that answered 404. That is
-not a failure of the API — see [Errors](errors.md).
+not a failure of the API, see [Errors](errors.md).
 
 ```bash
 curl -s 'localhost:3000/v1/word/zzzqqq' | jq '{ entries: (.entries|length), errors }'
