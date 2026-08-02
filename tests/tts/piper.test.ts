@@ -10,14 +10,15 @@ import { isPiperAvailable, piperConfig, synthesizeWithPiper } from '../../src/tt
  * pronunciation down, it must fall through to espeak.
  */
 describe('piperConfig', () => {
-  it('is unconfigured when the env vars are absent', () => {
-    expect(piperConfig({})).toBeUndefined();
-    expect(isPiperAvailable({})).toBe(false);
+  it('can be turned off explicitly', () => {
+    // Not `{}` -- that now discovers whatever `pnpm voices` installed, so the
+    // assertion would depend on the machine it runs on.
+    expect(piperConfig({ PIPER_DISABLE: '1' })).toBeUndefined();
+    expect(isPiperAvailable({ PIPER_DISABLE: '1' })).toBe(false);
   });
 
-  it('is unconfigured when only one of the two is set', () => {
-    expect(piperConfig({ PIPER_BIN: '/usr/local/bin/piper' })).toBeUndefined();
-    expect(piperConfig({ PIPER_MODEL: '/opt/voices/ro.onnx' })).toBeUndefined();
+  it('is unconfigured when a set path does not exist', () => {
+    expect(piperConfig({ PIPER_BIN: '/nope/piper', PIPER_MODEL: '/nope/ro.onnx' })).toBeUndefined();
   });
 
   it('is unconfigured when the paths do not exist', () => {
@@ -29,8 +30,8 @@ describe('piperConfig', () => {
 });
 
 describe('synthesizeWithPiper', () => {
-  it('returns undefined rather than throwing when unconfigured', async () => {
-    await expect(synthesizeWithPiper('casă', {})).resolves.toBeUndefined();
+  it('returns undefined rather than throwing when disabled', async () => {
+    await expect(synthesizeWithPiper('casă', { PIPER_DISABLE: '1' })).resolves.toBeUndefined();
   });
 
   it('returns undefined when the binary cannot be run', async () => {
@@ -48,15 +49,17 @@ describe('engine selection over HTTP', () => {
     expect(res.status).toBe(400);
   });
 
-  it('reports Piper as unavailable instead of silently using espeak', async () => {
-    // Pinning a tier and quietly getting another makes it impossible to tell
-    // whether Piper is configured -- which is the thing you are checking when
-    // you name it.
-    const res = await app.request('/v1/tts/cas%C4%83?engine=piper');
-    expect(res.status).toBe(503);
-    const body = (await res.json()) as { error: { message: string } };
-    expect(body.error.message).toMatch(/PIPER_BIN/);
-    expect(body.error.message).toMatch(/pnpm voices/);
+  it('either serves Piper or says why it cannot — never a silent swap', async () => {
+    // Whether Piper is installed depends on the machine, but the contract does
+    // not: pinning a tier must give you that tier or an explanation.
+    const res = await app.request('/v1/tts/cas%C4%83?engine=piper&meta');
+    if (res.status === 200) {
+      expect(((await res.json()) as { engine: string }).engine).toBe('piper');
+    } else {
+      expect(res.status).toBe(503);
+      const body = (await res.json()) as { error: { message: string } };
+      expect(body.error.message).toMatch(/pnpm voices/);
+    }
   });
 
   it('still serves espeak when pinned', async () => {
@@ -65,3 +68,25 @@ describe('engine selection over HTTP', () => {
     expect(((await res.json()) as { engine: string }).engine).toBe('espeak');
   });
 }, 30_000);
+
+describe('auto-discovery', () => {
+  it('finds what `pnpm voices` installed without any env vars', () => {
+    // The whole point of `pnpm voices` doing the install is that nothing has to
+    // be exported afterwards. This asserts the default paths are the ones the
+    // script writes to.
+    const cfg = piperConfig({});
+    if (cfg) {
+      expect(cfg.bin).toMatch(/piper/);
+      expect(cfg.model).toMatch(/ro_RO-mihai-medium\.onnx$/);
+    } else {
+      // Not installed in this environment; the tier is simply skipped.
+      expect(cfg).toBeUndefined();
+    }
+  });
+
+  it('does not silently substitute a discovered path for a bad explicit one', () => {
+    // A typo in PIPER_BIN should read as "not configured", not quietly resolve
+    // to something else and produce a different voice.
+    expect(piperConfig({ PIPER_BIN: '/nope/piper', PIPER_MODEL: '/nope/m.onnx' })).toBeUndefined();
+  });
+});

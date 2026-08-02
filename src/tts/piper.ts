@@ -7,17 +7,18 @@
  * deployments will not use, so Piper is invoked as an external process when the
  * operator has set it up and skipped silently otherwise.
  *
+ * `pnpm voices` installs both and puts them where this looks by default, so no
+ * configuration is normally needed. To point elsewhere:
+ *
  *   PIPER_BIN=/usr/local/bin/piper
  *   PIPER_MODEL=/opt/voices/ro_RO-mihai-medium.onnx
- *
- * `pnpm voices` downloads the model; the binary comes from
- * https://github.com/rhasspy/piper/releases.
  *
  * Piper reads text, not IPA, so unlike the espeak tier this one cannot be fed
  * our own transcription — it uses its own Romanian front-end.
  */
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export interface PiperResult {
   bytes: Buffer;
@@ -30,14 +31,51 @@ export interface PiperConfig {
   model: string;
 }
 
-/** Resolve the configuration, or undefined when Piper is not set up. */
+/**
+ * Where `pnpm voices` puts things, so a normal setup needs no environment
+ * variables at all. PIPER_BIN / PIPER_MODEL still win when set.
+ */
+const DEFAULT_BINS = [
+  '.cache/piper-venv/bin/piper', // pip install piper-tts, what `pnpm voices` uses
+  '.cache/piper-venv/Scripts/piper.exe', // same, on Windows
+  '.cache/piper/piper/piper', // the upstream tarball, if unpacked by hand
+];
+const DEFAULT_MODEL = '.cache/voices/ro_RO-mihai-medium.onnx';
+
+function firstExisting(paths: readonly string[]): string | undefined {
+  for (const p of paths) {
+    const abs = resolve(p);
+    if (existsSync(abs)) return abs;
+  }
+  return undefined;
+}
+
+/**
+ * Resolve the configuration, or undefined when Piper is not set up.
+ *
+ * Order: explicit env vars, then whatever `pnpm voices` installed. Both the
+ * binary and the model must exist -- a stale path falls through to espeak
+ * rather than failing every pronunciation request.
+ */
 export function piperConfig(env: NodeJS.ProcessEnv = process.env): PiperConfig | undefined {
-  const bin = env.PIPER_BIN?.trim();
-  const model = env.PIPER_MODEL?.trim();
+  // An explicit off switch, for operators who do not want the tier and for
+  // tests that must not depend on whether `pnpm voices` has been run here.
+  if (env.PIPER_DISABLE === '1' || env.PIPER_DISABLE === 'true') return undefined;
+
+  const envBin = env.PIPER_BIN?.trim();
+  const envModel = env.PIPER_MODEL?.trim();
+
+  // An explicitly set variable is never silently replaced by a discovered path:
+  // if you pointed at something, a typo should surface as "not configured"
+  // rather than as a different voice.
+  const bin = envBin ? (existsSync(envBin) ? envBin : undefined) : firstExisting(DEFAULT_BINS);
+  const model = envModel
+    ? existsSync(envModel)
+      ? envModel
+      : undefined
+    : firstExisting([DEFAULT_MODEL]);
+
   if (!bin || !model) return undefined;
-  // Both must exist: a stale path should fall through to espeak rather than
-  // fail every pronunciation request.
-  if (!existsSync(bin) || !existsSync(model)) return undefined;
   return { bin, model };
 }
 

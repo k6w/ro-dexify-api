@@ -38,8 +38,9 @@ sites tell you apart from a scraper.
 | Variable | Default | Notes |
 |---|---|---|
 | `TTS_VOICE` | — | espeak variant override, e.g. `ro+f5` |
-| `PIPER_BIN` | — | Path to the Piper binary |
-| `PIPER_MODEL` | — | Path to `ro_RO-mihai-medium.onnx` |
+| `PIPER_BIN` | auto | Path to the Piper binary. `pnpm voices` installs one and it is found automatically. |
+| `PIPER_MODEL` | auto | Path to `ro_RO-mihai-medium.onnx`, likewise |
+| `PIPER_DISABLE` | — | Set to `1` to skip the Piper tier entirely |
 
 Synthesis is female (`ro+f3`) unless overridden. Piper is used only for
 `?voice=male` and only when both paths exist. See

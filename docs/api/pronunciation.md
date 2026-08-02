@@ -74,16 +74,35 @@ md5 `45f4253916c93d3d05ad3fe1b07ea4f3`, in
 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main/ro/ro_RO/mihai/medium).
 It is the only Romanian voice in that catalogue.
 
-Needs the model and the Piper binary:
+One command installs everything — model, runtime and a self-test:
 
 ```bash
-pnpm voices                                   # downloads the model
-export PIPER_MODEL="$PWD/.cache/voices/ro_RO-mihai-medium.onnx"
-export PIPER_BIN=/usr/local/bin/piper         # github.com/rhasspy/piper/releases
+pnpm voices
 ```
 
-If either path is missing or the binary fails, it silently falls through to
-espeak. A broken Piper never breaks pronunciation.
+Takes about 15 seconds. **No environment variables are needed afterwards**: it
+installs under `.cache/` and the API looks there by default.
+
+```bash
+curl -s 'localhost:3000/v1/tts/casă?engine=piper' -o piper.wav
+```
+
+It installs the `piper-tts` wheel into a virtualenv rather than using the
+official binary release, because the upstream macOS build ships the executable
+without its own `libespeak-ng` and `libonnxruntime` dylibs and fails to load.
+
+To point at an existing install instead, or to turn the tier off:
+
+```bash
+export PIPER_BIN=/usr/local/bin/piper
+export PIPER_MODEL=/opt/voices/ro_RO-mihai-medium.onnx
+export PIPER_DISABLE=1        # skip Piper entirely
+```
+
+An explicitly set path that does not exist reads as "not configured" rather
+than falling back to a discovered one — a typo should not quietly give you a
+different voice. When no engine is pinned, an unavailable Piper falls through to
+espeak and never breaks pronunciation.
 
 ### 3. `espeak` — always available
 
