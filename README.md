@@ -8,6 +8,10 @@ nightly job re-runs them against the real upstreams so a redesign is caught befo
 
 Every example below is real output from the running service, not an illustration.
 
+**📚 Full documentation is in [`docs/`](docs/README.md)** — one page per topic,
+written for people who have not used an API reference before. This README is the
+tour; `docs/` is the detail.
+
 ## Quickstart
 
 ```bash
@@ -270,6 +274,24 @@ pnpm check:live         run the parsers against the live sites (upstream drift c
 pnpm typecheck          tsc --noEmit
 pnpm lint               biome check
 ```
+
+## Documentation
+
+| Topic | Page |
+|---|---|
+| Install and first request | [Getting started](docs/getting-started.md) |
+| Vocabulary used everywhere | [Concepts](docs/concepts.md) |
+| Every endpoint | [API overview](docs/api/README.md) |
+| Word lookup and its parameters | [Word lookup](docs/api/word-lookup.md) |
+| `/v1` vs `/v2` | [Versions](docs/api/versions.md) |
+| Audio and voices | [Pronunciation](docs/api/pronunciation.md) |
+| Every response field | [Entry schema](docs/data/entry-schema.md) |
+| What to trust | [Accuracy](docs/data/accuracy.md) |
+| Ranking, dedup, merge | [Ranking](docs/data/ranking.md) |
+| Each dictionary | [Sources](docs/sources/README.md) |
+| IPA and stress rules | [Phonetics](docs/phonetics/README.md) |
+| Running it | [Configuration](docs/operations/configuration.md) · [Deployment](docs/operations/deployment.md) · [Troubleshooting](docs/operations/troubleshooting.md) |
+| Changing the code | [Architecture](docs/contributing/architecture.md) · [Testing](docs/contributing/testing.md) · [Adding a provider](docs/contributing/adding-a-provider.md) |
 
 ## Licensing & attribution
 
