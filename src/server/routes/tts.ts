@@ -1,7 +1,10 @@
 import { Hono } from 'hono';
 import '../context.js';
 import { HeadwordParam } from '../../schema/api.js';
-import { pronounce } from '../../tts/index.js';
+import { ApiException } from '../../schema/errors.js';
+import { type EngineChoice, EngineUnavailableError, pronounce } from '../../tts/index.js';
+
+const ENGINES: EngineChoice[] = ['commons', 'piper', 'espeak'];
 
 export const ttsRoutes = new Hono();
 
@@ -16,17 +19,33 @@ ttsRoutes.get('/tts/:word', async (c) => {
   const word = HeadwordParam.parse(decodeURIComponent(c.req.param('word')));
   const logger = c.get('logger');
   const wantsMeta = c.req.query('meta') !== undefined;
-  const forceEspeak = c.req.query('engine') === 'espeak';
   // Synthesis is female unless a male voice is asked for. Human recordings are
   // unaffected: Commons publishes no speaker gender to filter on.
   const voice = c.req.query('voice') === 'male' ? 'male' : 'female';
 
-  const result = await pronounce(word, {
-    logger,
-    synthesizeOnly: forceEspeak,
-    forceEspeak,
-    voice,
-  });
+  const requested = c.req.query('engine');
+  if (requested !== undefined && !ENGINES.includes(requested as EngineChoice)) {
+    throw new ApiException('INVALID_INPUT', `unknown engine "${requested}"`, {
+      allowed: ENGINES,
+    });
+  }
+  const engine = requested as EngineChoice | undefined;
+
+  let result: Awaited<ReturnType<typeof pronounce>>;
+  try {
+    result = await pronounce(word, {
+      logger,
+      voice,
+      ...(engine ? { engine } : {}),
+    });
+  } catch (err) {
+    // Pinning a tier that cannot serve this word is a 503, not a silent
+    // downgrade: if you named an engine you want to know it was not used.
+    if (err instanceof EngineUnavailableError) {
+      throw new ApiException('PROVIDER_DISABLED', err.message, { engine: err.engine });
+    }
+    throw err;
+  }
 
   if (wantsMeta) {
     return c.json({

@@ -94,8 +94,12 @@ function buildOpenApi(): unknown {
             {
               name: 'engine',
               in: 'query',
-              description: "Force an engine; 'espeak' skips the Commons lookup.",
-              schema: { type: 'string', enum: ['espeak'] },
+              description:
+                'Pin a tier instead of walking them best-first. ' +
+                "'commons' = human recording, 'piper' = neural (needs PIPER_BIN + PIPER_MODEL), " +
+                "'espeak' = always available. A pinned tier that cannot serve the word returns " +
+                '503 rather than silently falling back.',
+              schema: { type: 'string', enum: ['commons', 'piper', 'espeak'] },
             },
             {
               name: 'voice',

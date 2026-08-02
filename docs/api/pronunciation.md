@@ -69,7 +69,12 @@ Natural-sounding, but Piper's catalogue has exactly one Romanian voice
 (`ro_RO-mihai-medium`) and it is **male**. It is therefore used only for
 `?voice=male`, never for the default female voice.
 
-Needs a ~60 MB model and the Piper binary:
+The model is real and public: `ro_RO-mihai-medium.onnx`, 60.3 MB,
+md5 `45f4253916c93d3d05ad3fe1b07ea4f3`, in
+[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices/tree/main/ro/ro_RO/mihai/medium).
+It is the only Romanian voice in that catalogue.
+
+Needs the model and the Piper binary:
 
 ```bash
 pnpm voices                                   # downloads the model

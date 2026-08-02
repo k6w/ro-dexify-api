@@ -43,12 +43,30 @@ export interface Pronunciation {
   stressOrigin: 'attested' | 'derived';
 }
 
+/** Explicitly requested tier. Omit to walk them best-first. */
+export type EngineChoice = 'commons' | 'piper' | 'espeak';
+
+export class EngineUnavailableError extends Error {
+  constructor(
+    readonly engine: EngineChoice,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'EngineUnavailableError';
+  }
+}
+
 export interface PronounceOptions {
   stressMark?: string;
-  /** Skip Commons and synthesise directly. */
-  synthesizeOnly?: boolean;
-  /** Force espeak, skipping Piper too. Used by the tests to stay deterministic. */
-  forceEspeak?: boolean;
+  /**
+   * Pin the tier instead of walking them.
+   *
+   * When set, an unavailable tier is an error rather than a silent fallback:
+   * asking for `piper` and quietly getting espeak makes it impossible to tell
+   * whether Piper is configured, which is exactly what you are testing when
+   * you name it.
+   */
+  engine?: EngineChoice;
   /** Synthesised voice; defaults to female. Human recordings are unaffected. */
   voice?: VoiceGender;
   logger: Logger;
@@ -81,7 +99,7 @@ function writeCache(path: string, bytes: Buffer): void {
 export async function pronounce(word: string, opts: PronounceOptions): Promise<Pronunciation> {
   const transcription = transcribe(word, opts.stressMark ? { stressMark: opts.stressMark } : {});
 
-  if (!opts.synthesizeOnly) {
+  if (opts.engine === undefined || opts.engine === 'commons') {
     try {
       const human = await findHumanRecording(word, opts.logger);
       if (human) {
@@ -113,20 +131,41 @@ export async function pronounce(word: string, opts: PronounceOptions): Promise<P
     } catch (err) {
       // A Commons outage falls through to synthesis rather than failing.
       opts.logger.warn({ word, err: String(err) }, 'commons_audio_failed');
+      if (opts.engine === 'commons') {
+        throw new EngineUnavailableError(
+          'commons',
+          `Wikimedia Commons lookup failed for "${word}"`,
+        );
+      }
+    }
+    if (opts.engine === 'commons') {
+      throw new EngineUnavailableError(
+        'commons',
+        `no human recording exists on Wikimedia Commons for "${word}"`,
+      );
     }
   }
 
   // Piper is a quality upgrade and is skipped silently when not configured.
   const piperPath = cachePath(word, 'piper');
   const piperCached = readCache(piperPath);
-  // Piper's only Romanian voice is male, so it is used only when a male voice
-  // was explicitly requested. Defaulting to it would ignore ?voice=female.
-  const piper =
-    opts.forceEspeak || (opts.voice ?? 'female') !== 'male'
-      ? undefined
-      : piperCached
-        ? { bytes: piperCached, mime: 'audio/wav' as const, engine: 'piper' as const }
-        : await synthesizeWithPiper(word);
+  // Piper's only Romanian voice is male, so when no engine is pinned it runs
+  // only for ?voice=male -- defaulting to it would ignore ?voice=female.
+  // Naming it explicitly overrides that, so the tier can be tested.
+  const wantsPiper =
+    opts.engine === 'piper' || (opts.engine === undefined && (opts.voice ?? 'female') === 'male');
+  const piper = !wantsPiper
+    ? undefined
+    : piperCached
+      ? { bytes: piperCached, mime: 'audio/wav' as const, engine: 'piper' as const }
+      : await synthesizeWithPiper(word);
+  if (opts.engine === 'piper' && !piper) {
+    throw new EngineUnavailableError(
+      'piper',
+      'Piper is not configured. Set PIPER_BIN and PIPER_MODEL to existing files ' +
+        '(run `pnpm voices` to download ro_RO-mihai-medium), then retry.',
+    );
+  }
   if (piper) {
     if (!piperCached) writeCache(piperPath, piper.bytes);
     return {
