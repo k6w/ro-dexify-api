@@ -1,104 +1,139 @@
 # ro-dexify-api
 
-Romanian dictionary API. One TypeScript service that reads several dictionaries, normalises them into
-a single typed entry, and serves definitions, inflections, etymology, IPA and pronunciation audio.
+Romanian dictionary data, normalized behind one typed HTTP API.
 
-Every parser is tested against **recorded responses from the live sites** (`tests/fixtures/`), and a
-nightly job re-runs them against the real upstreams so a redesign is caught before users are.
+Give it a word and get definitions, grammar, inflections, etymology, IPA, syllabification, stress,
+and pronunciation audio assembled from DOOM 3, DEXonline, Romanian Wiktionary, and local language
+tools. The service is written in TypeScript, runs on Node.js and SQLite, and ships with an
+interactive OpenAPI reference.
 
-Every example below is real output from the running service, not an illustration.
+> Version 2.0.0 · Node.js 20+ · MIT codebase · non-commercial data usage
 
-**📚 Full documentation is in [`docs/`](docs/README.md)**: one page per topic,
-written for people who have not used an API reference before. This README is the
-tour; `docs/` is the detail.
+## What it does
+
+- Aggregates several Romanian dictionaries into one stable response shape.
+- Preserves source attribution and authority instead of hiding provenance.
+- Distinguishes dictionary-attested data from rule-derived data.
+- Exposes both a frozen flat `/v1` format and a richer recursive `/v2` format.
+- Provides full-text search, conjugation, pluralization, IPA, and audio.
+- Keeps working when one upstream fails through timeouts, circuit breakers, and partial responses.
+- Runs locally with SQLite—no MySQL, MariaDB, or privileged setup required.
+
+Every parser is tested against recorded responses from the real upstream sites. A nightly live check
+detects markup or API changes before they quietly corrupt results.
+
+## See it in action
+
+Start the service and open **[http://localhost:3000/docs](http://localhost:3000/docs)**. Scalar lists
+every operation, request parameter, response, and client snippet in one interactive reference.
+
+![Interactive API reference showing the full ro-dexify-api endpoint catalog](docs/screenshots/api-reference.png)
+
+The main `/v2/word` operation exposes the complete nested entry model, including typed senses,
+relations, sources, paradigms, and confidence markers.
+
+![Scalar documentation for the full v2 Romanian word lookup](docs/screenshots/word-lookup-v2.png)
+
+Grammar helpers are documented alongside dictionary operations. Conjugation covers common
+irregular verbs plus a four-class rule engine; pluralization is computed locally.
+
+![Scalar documentation for Romanian conjugation and pluralization](docs/screenshots/conjugation.png)
+
+### Real searches from the Scalar sandbox
+
+These are successful requests executed from Scalar's **Test Request** panel against a locally seeded
+database—not mocked output. Each screenshot shows the submitted query, `200 OK`, result count, and
+returned JSON.
+
+| Search for `casa` | Search for `copil` |
+|---|---|
+| [![Scalar sandbox returning 20 matches for casa](docs/screenshots/scalar-search-casa-response.png)](docs/screenshots/scalar-search-casa-response.png) | [![Scalar sandbox returning 20 matches for copil](docs/screenshots/scalar-search-copil-response.png)](docs/screenshots/scalar-search-copil-response.png) |
+
+Search is diacritic-folded, so `casa` also finds `casă`. Results come from the local FTS5 index and
+do not need an upstream request.
 
 ## Quickstart
 
 ```bash
 pnpm install
-pnpm bootstrap --lite     # migrations + a filtered seed from the GPL DEX dump (~3 MB)
+pnpm bootstrap --lite
 pnpm dev
 ```
 
-`pnpm bootstrap --no-seed` runs migrations only; live lookups then fill the cache on demand. No
-MariaDB, no MySQL, no `sudo`: Node and SQLite only.
+Then visit:
 
-## Sources
+- Interactive API reference: <http://localhost:3000/docs>
+- OpenAPI document: <http://localhost:3000/openapi.json>
+- Health check: <http://localhost:3000/v1/healthz>
 
-| Provider | What it actually provides | Status |
+`pnpm bootstrap --lite` creates the SQLite database and imports a representative subset of the GPL
+DEX dump. The upstream archive is streamed and filtered locally, then removed. Use
+`pnpm bootstrap --no-seed` for migrations only; live lookups populate the cache on demand.
+
+### First requests
+
+```bash
+# Definitions, grammar, IPA, and inflections
+curl 'http://localhost:3000/v1/word/cas%C4%83?merge'
+
+# Full recursive sense tree
+curl 'http://localhost:3000/v2/word/cas%C4%83?merge'
+
+# Diacritic-folded local search
+curl 'http://localhost:3000/v1/search?q=casa&limit=10'
+
+# Grammar and audio metadata
+curl 'http://localhost:3000/v1/conjugate/merge'
+curl 'http://localhost:3000/v1/pluralize/cas%C4%83'
+curl 'http://localhost:3000/v1/tts/cas%C4%83?meta'
+```
+
+## API map
+
+| Method | Endpoint | Purpose |
 |---|---|---|
-| `doom` | Orthography, **stress**, syllabification, inflections, verb paradigms | on |
-| `dexonline` | Definitions, sense tree, etymology, synonyms/diminutives, cited examples, full declension | on |
-| `wiktionary` | Definitions, etymology, IPA, declension/conjugation templates | on |
-| `conjugare` | Verb conjugation: 22 irregular verbs by table, plus a 4-class rule engine | on (local) |
-| `pluralro` | Rule-based pluralisation | on (local) |
-| `mdex` | Definitions: mirrors the same DEXonline corpus in poorer markup | **off by default** (`?sources=mdex`) |
-| `forvo` | Audio pronunciations | off unless `FORVO_API_KEY` is set |
-| `dlr` | Academic definitions | **unavailable**: see below |
+| `GET` | `/v1/word/:word` | Aggregate lookup with flat senses |
+| `GET` | `/v1/word/:word/:source` | Flat lookup from one provider |
+| `GET` | `/v2/word/:word` | Full recursive entry |
+| `GET` | `/v2/word/:word/:source` | Full entry from one provider |
+| `GET` | `/v1/search?q=` | FTS5 search over cached entries |
+| `GET` | `/v1/tts/:word` | Human or synthesized pronunciation |
+| `GET` | `/v1/audio/:word` | Forvo passthrough when configured |
+| `GET` | `/v1/conjugate/:verb` | Romanian verb forms |
+| `GET` | `/v1/pluralize/:noun` | Romanian noun plural |
+| `GET` | `/v1/sources` | Provider and circuit-breaker status |
+| `GET` | `/v1/healthz` | Service and database health |
+| `GET` | `/openapi.json` | OpenAPI 3.0 document |
+| `GET` | `/docs` | Interactive Scalar reference |
 
-`dlr1.solirom.ro/index.php?cuv=<word>` returns HTTP 404 for every word. The site was rebuilt as a
-browser-only application that resolves words client-side, so there is no server-rendered page to
-fetch. The provider is disabled unconditionally rather than left to fail on every request.
+## Response versions
 
-**DEXonline makes two requests per cache miss**: the JSON API for definitions, then the rendered page
-2 s later (its `robots.txt` sets `Crawl-delay: 2`) for relations, cited examples and the declension
-table. Cold lookups take ~2.5 s; both documents land in one cache entry, so cache hits cost nothing
-extra. If the second request fails, the JSON result is still returned.
+Only word lookup is versioned.
 
-## Endpoints
+- `/v1` is frozen for existing clients. Senses are returned as a flat list.
+- `/v2` returns the provider-native entry: a recursive sense tree with typed nodes (`meaning`,
+  `sub-meaning`, `example`, `expression`, and `locution`), per-sense relations and sources,
+  paradigms, homonym indexes, and origin/confidence metadata.
 
-```
-GET  /v1/word/:word                  aggregate across enabled providers (flat senses)
-GET  /v1/word/:word/:source          single provider
-GET  /v2/word/:word                  same lookup, full entry (recursive sense tree)
-GET  /v2/word/:word/:source
-GET  /v1/tts/:word                   pronunciation audio
-GET  /v1/search?q=&limit=&offset=    FTS5 over cached entries, diacritic-folded
-GET  /v1/conjugate/:verb
-GET  /v1/pluralize/:noun
-GET  /v1/audio/:word                 Forvo passthrough (needs a key)
-GET  /v1/sources                     provider metadata + circuit-breaker state
-GET  /v1/healthz
-GET  /openapi.json   /docs
-```
+The server builds `/v2` first and produces `/v1` through a flattening adapter.
 
-### `/v1` vs `/v2`
-
-`/v1` is frozen: senses are a flat list, and its response shape has not changed. `/v2` returns the
-entry as the providers built it, a recursive sense tree with typed nodes (`meaning`, `sub-meaning`,
-`example`, `expression`, `locution`), per-sense `relations` and `sources`, `paradigm`,
-`homonymIndex`, inflection `origin`/`confidence`, and `source.authority`. `/v1` is produced from
-`/v2` by a flattening adapter.
-
-Only `/word` is versioned. `search`, `tts`, `conjugate`, `pluralize`, `sources` and `healthz` are
-shared and live under `/v1`.
-
-### Query parameters (`/word`, both versions)
+### Lookup controls
 
 | Parameter | Effect |
 |---|---|
-| `?sources=doom,dexonline` | restrict to these providers |
-| `?refresh` | bypass the cache |
-| `?all` | skip ranking, deduplication and the cap |
-| `?dict=DEX '09,MDA2` | restrict to these contributing dictionaries |
-| `?limit=N` | cap entries per provider (default 8) |
-| `?orthographic` | include DOOM/Ortografic entries, which carry inflection but no definitions |
-| `?merge` | combine providers describing the same word into one entry |
+| `?sources=doom,dexonline` | Restrict lookup to named providers |
+| `?refresh` | Bypass cached upstream data |
+| `?all` | Skip ranking, deduplication, and the default cap |
+| `?dict=DEX '09,MDA2` | Restrict contributing dictionaries |
+| `?limit=N` | Cap entries per provider; default `8` |
+| `?orthographic` | Include entries carrying grammar but no definition |
+| `?merge` | Combine providers describing the same lexical entry |
+| `?include=definitions` | Require a provider capability |
 
-A lookup for `casă` draws on 32 dictionaries and 120 DEXonline definitions, so the default response
-is ranked by source authority (DOOM 3, DEX '09, DEXI, MDA2 high; Scriban 1939, Șăineanu 1929 low),
-deduplicated and capped.
+Filtering and ranking happen after cache reads. A filtered request therefore cannot poison later
+unfiltered results.
 
-**Ranking and filtering run after the cache.** One upstream fetch serves every view, and a
-`?dict`-filtered request cannot poison an unfiltered one:
-
-```
-?dict=DEX '09  →  2 entries   (2 misses)
-unfiltered     →  8 entries   (8 cache hits)
-?all=true      → 28 entries   (28 cache hits)
-```
-
-### Example
+## Example word entry
 
 `GET /v1/word/casă?sources=doom`
 
@@ -110,7 +145,7 @@ unfiltered     →  8 entries   (8 cache hits)
   "partOfSpeech": "substantiv",
   "inflections": [
     { "form": "casei", "tags": ["genitive", "dative", "articulated"] },
-    { "form": "case",  "tags": ["plural"] }
+    { "form": "case", "tags": ["plural"] }
   ],
   "pronunciations": [
     { "ipa": "/ˈka.sə/", "syllabification": "ca-să", "stressMark": "cásă" }
@@ -119,128 +154,87 @@ unfiltered     →  8 entries   (8 cache hits)
 }
 ```
 
-DOOM entries have empty `senses` by design, it is an orthographic dictionary. Definitions come from
-`dexonline` and `wiktionary`.
+Empty DOOM senses are intentional: DOOM is an orthographic dictionary. Definitions come from
+DEXonline and Wiktionary. With `?merge`, the API combines their complementary data while retaining
+the contributor list.
 
-With `?merge`, `casă` collapses from 11 entries to 4, the first combining DOOM's stress and
-inflections, DEXonline's senses and etymology, and Wiktionary's IPA and declension, with
-`contributors: ["doom","dexonline","wiktionary","pluralro"]`.
+## Data sources
 
-## Pronunciation
-
-`GET /v1/tts/casă` returns audio. `?meta` returns what it is:
-
-```json
-{
-  "word": "casă",
-  "engine": "commons",
-  "mime": "application/ogg",
-  "bytes": 38135,
-  "license": "Public domain",
-  "attribution": "Calusarul, via Wikimedia Commons (File:Ro-casă.oga)",
-  "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/9/94/Ro-cas%C4%83.oga",
-  "ipa": "/ˈka.sə/",
-  "syllabification": "ca-să",
-  "stressOrigin": "derived"
-}
-```
-
-Three tiers, best first:
-
-1. **A human recording** from Wikimedia Commons: `Ro-<word>.oga` plus the Lingua Libre corpus
-   (24,088 Romanian files). Free, no API key. Licences differ per file, so licence and attribution
-   are read per recording and travel with the audio.
-2. **Piper neural TTS** (`ro_RO-mihai-medium`): optional, and **only for `?voice=male`**. Piper's
-   catalogue has exactly one Romanian voice and it is male, so it is never used for the default
-   female voice. It also needs a ~60 MB model and the Piper binary, so it runs only when both
-   `PIPER_BIN` and `PIPER_MODEL` point at files that exist. `pnpm voices` fetches the model; the
-   binary comes from [rhasspy/piper releases](https://github.com/rhasspy/piper/releases).
-3. **espeak-ng synthesis** (compiled to WebAssembly, no binary to install, no model to download),
-   always available, so the endpoint works on a fresh clone and never fails for an ordinary word. It
-   is driven by the IPA below rather than by the spelling, so what gets spoken is the verified
-   transcription.
-
-A misconfigured Piper degrades rather than breaks: missing variables, stale paths, a spawn failure, a
-non-zero exit, non-WAV output or a hang all fall through to espeak.
-
-Attribution is also returned in `X-Audio-Engine`, `X-Audio-License`, `X-Audio-Attribution` and
-`X-Audio-IPA`. Those are **percent-encoded**, because HTTP headers are ASCII and `/ˈka.sə/` is not;
-`?meta` carries the values verbatim.
-
-**Synthesis uses a female voice by default** (espeak `ro+f3`). `?voice=male` switches it, and
-`TTS_VOICE` overrides the variant outright (`ro+f1`…`ro+f5` female, `ro+m1`…`ro+m7` male). The choice
-affects synthesis only, a human recording is whoever recorded the word, and Commons publishes no
-speaker gender to filter on, so `casă` is read by Calusarul and `copil` by Andreea Teodoraa
-regardless. Use `?engine=espeak` for a consistent voice on every word.
-
-`?engine=espeak` skips the Commons lookup. Audio is cached on disk per word **and voice**, under
-`.cache/tts/`.
-
-**ro.wiktionary is not used for audio.** Of the eight recorded fixture words exactly one carried an
-`{{audio}}` template, and it pointed at `Fr-ou.ogg`: the French word.
-
-### IPA and syllabification
-
-Romanian spelling is close to phonemic, so `src/phonetics` derives a transcription for **every**
-word, not only the few Wiktionary covers. It is verified against the IPA those fixtures independently
-record:
-
-| word | derived | ro.wiktionary |
+| Provider | Supplies | Default |
 |---|---|---|
-| casă | `/ˈka.sə/` | `/ˈka.sə/` |
-| copil | `/koˈpil/` | `/koˈpil/` |
-| oaie | `/ˈo̯a.je/` | `/ˈo̯a.je/` |
-| merge | `/ˈmer.d͡ʒe/` | `/ˈmer.ʤe/` |
+| `doom` | Orthography, stress, syllabification, inflections, verb paradigms | On |
+| `dexonline` | Definitions, sense trees, etymology, relations, examples, declensions | On |
+| `wiktionary` | Definitions, etymology, IPA, declension and conjugation templates | On |
+| `conjugare` | 22 irregular verb tables plus a four-class rule engine | On, local |
+| `pluralro` | Rule-based pluralization | On, local |
+| `mdex` | A secondary rendering of the DEX corpus | Opt-in with `?sources=mdex` |
+| `forvo` | Recorded pronunciations | Requires `FORVO_API_KEY` |
+| `dlr` | Academic definitions | Unavailable; upstream has no fetchable word pages |
 
-Stress is taken from DOOM's underline markup or DEXonline's accent marker where a dictionary gives
-one (`stressOrigin: "attested"`); otherwise the regular pattern is applied and the result is reported
-as `"derived"`.
+DEXonline uses two documents on a cache miss: its JSON API for definitions and, after the site's
+two-second crawl delay, the rendered page for relations, examples, and declension tables. If the
+second request fails, the JSON result is still returned.
 
-## Conjugation
+## Search
 
-`GET /v1/conjugate/merge` → `class III`, `inf=merge`, `ind.prez.1sg=merg`, `part.past=mers`,
-`imperative.2sg=mergi`.
+`GET /v1/search?q=&limit=&offset=` searches the local SQLite FTS5 index.
 
-22 irregular verbs (`fi, avea, vrea, putea, vedea, face, merge, da, sta, lua, bea, ști, veni, spune,
-zice, duce, trece, scrie, pune, ține, rămâne, mânca`) come from a table; everything else from a
-4-class rule engine. `a fi` and `fi` are equivalent input.
+- Romanian diacritics are folded: `casa` matches `casă`.
+- Every term is treated as a prefix.
+- Results include the headword, provider, preview, and relevance score.
+- FTS operators such as `AND`, `OR`, `NEAR`, `:`, and `^` are quoted and searched as text.
 
-## Accuracy
+Search covers seeded data plus entries cached by earlier live lookups.
 
-The API distinguishes what a dictionary said from what it worked out:
+## Pronunciation and audio
 
-- `inflections[].origin` is `attested` or `derived`; `confidence` is `high` or `low`.
-- `pronunciations[].stressOrigin` says whether stress came from a dictionary.
-- `source.authority` (0–100) says how much weight a contributing dictionary carries.
-- On `?merge`, an attested form always beats a rule-derived duplicate, and a known part of speech
-  beats `unknown`.
+`GET /v1/tts/:word` returns audio bytes. Add `?meta` for JSON containing the engine, MIME type, byte
+count, licence, attribution, IPA, syllabification, and stress origin.
 
-One thing it deliberately does not do: a derived transcription never overwrites an attested one.
+Audio uses three tiers:
 
-DEXonline paradigms are read as a full HTML grid, so both nominal declensions
-(casă/casa/case/casele/casei/caselor, tagged with case, number and article) and verb conjugations
-(tense, number and person, including the long infinitive and the imperative) are complete and
-published as attested inflections.
+1. A human recording from Wikimedia Commons, including the Lingua Libre Romanian corpus.
+2. Optional Piper neural TTS (`ro_RO-mihai-medium`) for `?voice=male` when `PIPER_BIN` and
+   `PIPER_MODEL` point to usable files.
+3. espeak-ng through WebAssembly, always available as the fallback.
 
-## Reliability
+The default synthesized voice is female. Use `?voice=male`, force the fallback with
+`?engine=espeak`, or override the espeak variant through `TTS_VOICE`. Audio is cached by word and
+voice under `.cache/tts/`. Licence and attribution also travel in percent-encoded `X-Audio-*`
+headers.
 
-- Per-provider circuit breaker (5 consecutive failures → open 60 s).
-- Per-host token-bucket rate limit (dexonline 2 s per `robots.txt`, DOOM 1.5 s, Wiktionary 250 ms).
-- `robots.txt` honoured for every page-scraping provider. `wiktionary` is the one exception
-  (`robotsPolicy: 'official-api'`): Wikimedia's `Disallow: /w/` stops search engines indexing dynamic
-  wiki pages, while `api.php` is the interface they document for programmatic access and rate-limit
-  themselves. The descriptive User-Agent and per-host limit still apply. Wikimedia returns **403**
-  without that User-Agent, so it is required rather than merely polite.
-- `Promise.allSettled` fan-out: one slow source cannot block the rest. 8 s per provider, 12 s total.
-- ETag / Last-Modified replay.
-- Output sanitised with `sanitize-html`; input validated with zod (max 64 chars, Romanian letters
-  plus `-` and `'`).
-- FTS5 queries are quoted, so `AND`, `OR`, `NEAR`, `:` and `^` are searched as text and cannot
-  produce a 500.
+## Accuracy and provenance
+
+The API says whether a value was read from a source or computed:
+
+- `inflections[].origin` is `attested` or `derived`.
+- `inflections[].confidence` is `high` or `low`.
+- `pronunciations[].stressOrigin` records whether stress was attested.
+- `source.authority` scores the contributing dictionary from 0 to 100.
+- On merged entries, attested forms beat derived duplicates.
+
+A derived transcription never overwrites an attested one. DEXonline paradigms are parsed as full
+HTML grids, preserving case, number, article, tense, person, and other grammatical tags.
+
+## Reliability and safety
+
+- Per-provider circuit breaker: five consecutive failures open it for 60 seconds.
+- Per-host token-bucket limits, including published upstream crawl delays.
+- Eight-second provider timeout and twelve-second total lookup budget.
+- `Promise.allSettled` fan-out, so one provider cannot erase successful results from others.
+- ETag and Last-Modified replay for upstream documents.
+- Sanitized HTML output and Zod input validation.
+- FTS queries are safely quoted instead of interpreted as operators.
+- Optional API-key enforcement and global request rate limiting.
+
+A response may contain both non-empty `entries` and non-empty `errors`. That means one source failed
+while others succeeded; clients should inspect `entries` first.
 
 ## Configuration
 
-```
+Copy `.env.example` or set environment variables directly:
+
+```dotenv
 PORT=3000
 HOST=0.0.0.0
 DB_PATH=./vocabulary.db
@@ -251,61 +245,62 @@ RATE_LIMIT_PER_MIN=60
 ENABLE_DLR=false
 FORVO_API_KEY=
 FORVO_DAILY_QUOTA=500
-TTS_VOICE=                # optional; espeak variant override, e.g. ro+f5
-PIPER_BIN=                # optional; enables the neural tier for ?voice=male
-PIPER_MODEL=              # optional; path to ro_RO-mihai-medium.onnx
+TTS_VOICE=
+PIPER_BIN=
+PIPER_MODEL=
 DEX_DUMP_URL=https://dexonline.ro/static/download/dex-database.sql.gz
 REQUIRE_API_KEY=false
 ```
 
-## Scripts
+## Development
 
-```
-pnpm dev                run with hot reload
-pnpm build              compile to dist/ (copies migration SQL)
-pnpm start              run the compiled build
-pnpm bootstrap [...]    installer + seeder
-pnpm seed               re-seed without pnpm install
-pnpm fixtures:refresh   re-record test fixtures from the live sources
-pnpm voices             download the optional Piper Romanian voice
-pnpm test               vitest
-pnpm test:ci            vitest + a guard that fails if the suite did not actually run
-pnpm check:live         run the parsers against the live sites (upstream drift check)
-pnpm typecheck          tsc --noEmit
-pnpm lint               biome check
+```bash
+pnpm dev                # development server with hot reload
+pnpm build              # compile into dist and copy runtime assets
+pnpm start              # run the compiled build
+pnpm bootstrap --lite   # migrations and representative seed
+pnpm bootstrap --no-seed
+pnpm seed               # re-seed without reinstalling dependencies
+pnpm test               # Vitest suite
+pnpm test:ci            # tests plus suite-execution guard
+pnpm typecheck          # TypeScript without emitting files
+pnpm lint               # Biome checks
+pnpm check:live         # run parsers against current upstream pages
+pnpm fixtures:refresh   # re-record live fixtures
+pnpm voices             # download the optional Piper Romanian voice
 ```
 
 ## Documentation
 
-| Topic | Page |
+| Need | Read |
 |---|---|
-| Install and first request | [Getting started](docs/getting-started.md) |
-| Vocabulary used everywhere | [Concepts](docs/concepts.md) |
-| Every endpoint | [API overview](docs/api/README.md) |
-| Word lookup and its parameters | [Word lookup](docs/api/word-lookup.md) |
-| `/v1` vs `/v2` | [Versions](docs/api/versions.md) |
-| Audio and voices | [Pronunciation](docs/api/pronunciation.md) |
-| Every response field | [Entry schema](docs/data/entry-schema.md) |
-| What to trust | [Accuracy](docs/data/accuracy.md) |
-| Ranking, dedup, merge | [Ranking](docs/data/ranking.md) |
-| Each dictionary | [Sources](docs/sources/README.md) |
-| IPA and stress rules | [Phonetics](docs/phonetics/README.md) |
-| Running it | [Configuration](docs/operations/configuration.md) · [Deployment](docs/operations/deployment.md) · [Troubleshooting](docs/operations/troubleshooting.md) |
-| Changing the code | [Architecture](docs/contributing/architecture.md) · [Testing](docs/contributing/testing.md) · [Adding a provider](docs/contributing/adding-a-provider.md) |
+| Install and make the first request | [Getting started](docs/getting-started.md) |
+| Understand common vocabulary | [Concepts](docs/concepts.md) |
+| Browse all endpoints | [API overview](docs/api/README.md) |
+| Configure word lookup | [Word lookup](docs/api/word-lookup.md) |
+| Choose `/v1` or `/v2` | [API versions](docs/api/versions.md) |
+| Use audio and voices | [Pronunciation](docs/api/pronunciation.md) |
+| Read every response field | [Entry schema](docs/data/entry-schema.md) |
+| Decide what data to trust | [Accuracy](docs/data/accuracy.md) |
+| Understand ranking and merge | [Ranking](docs/data/ranking.md) |
+| Review every dictionary | [Sources](docs/sources/README.md) |
+| Understand IPA and stress | [Phonetics](docs/phonetics/README.md) |
+| Operate the service | [Configuration](docs/operations/configuration.md) · [Deployment](docs/operations/deployment.md) · [Troubleshooting](docs/operations/troubleshooting.md) |
+| Contribute code | [Architecture](docs/contributing/architecture.md) · [Testing](docs/contributing/testing.md) · [Add a provider](docs/contributing/adding-a-provider.md) |
 
-## Licensing & attribution
+## Licensing and attribution
 
-- **DOOM 3**: CC BY-NC-SA 4.0, non-commercial only. Institutul de Lingvistică „Iorgu Iordan –
-  Al. Rosetti".
-- **DEXonline**: GPL data; the seed dump is downloaded at setup and never committed.
-- **Wiktionary RO**: CC BY-SA 4.0.
-- **Wikimedia Commons audio**: per file; public domain through CC BY-SA 4.0, returned with each
-  response.
-- **espeak-ng**: GPL-3.0; the synthesised audio itself is offered as CC0.
-- **Piper** (`ro_RO-mihai-medium`): MIT, when the optional tier is enabled.
-- **Forvo**: proprietary, per-clip credit to the speaker.
+- **DOOM 3:** CC BY-NC-SA 4.0, non-commercial only; Institutul de Lingvistică „Iorgu Iordan –
+  Al. Rosetti”.
+- **DEXonline:** GPL data. The seed dump is downloaded during setup and is not committed.
+- **Romanian Wiktionary:** CC BY-SA 4.0.
+- **Wikimedia Commons audio:** licence varies per file and is returned with the response.
+- **espeak-ng:** GPL-3.0; synthesized audio is offered as CC0.
+- **Piper `ro_RO-mihai-medium`:** MIT when the optional tier is installed.
+- **Forvo:** proprietary, with per-clip speaker credit.
 
-Per-provider attribution travels in every response in `entry.source.attribution`, and per-recording
-attribution in the `/v1/tts` response and headers.
+Provider attribution is included in `entry.source.attribution`; recording attribution is included in
+the TTS response and headers.
 
-This project is MIT-licensed and non-commercial.
+The project code is MIT-licensed. Because DOOM data is CC BY-NC-SA, deployments using that provider
+must remain non-commercial and preserve attribution.
